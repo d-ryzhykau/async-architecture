@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+{%- if cookiecutter.need_rabbitmq %}
+pika = "~=1.3.2"
+{%- endif %}
+{%- if cookiecutter.need_kafka %}
+kafka-python = "~=2.0.2"
+{%- endif %}
+{%- if cookiecutter.need_web_service %}
+Flask = "~=2.3.2"
+gunicorn = "~=21.2.0"
+{%- endif %}
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
+python_full_version = "3.11.4"
