@@ -201,7 +201,8 @@ REST API сервисов доступно только обладателям m
 
 ```jsonc
 {
-  "user_id": "uuid" // UUID пользователя
+  "user_id": "uuid", // UUID пользователя
+  "timestamp": "ISO 8601 Datetime" // время события
 }
 ```
 
