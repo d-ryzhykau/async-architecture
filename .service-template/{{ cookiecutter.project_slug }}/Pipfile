@@ -4,20 +4,35 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+# settings
+pydantic-settings = "~=2.0.2"
+{%- if cookiecutter.need_db %}
+# db
+psycopg2 = "~=2.9.7"
+sqlalchemy = "~=2.0.19"
+alembic = "~=1.11.2"
+{%- endif %}
+{%- if cookiecutter.need_web_service %}
+# web
+fastapi = "~=0.101.0"
+python-multipart = "~=0.0.6"
+uvicorn = {version = "~=0.23.2", extras = ["standard"]}
+pydantic = {version = "~=2.1.1", extras = ["email"]}
+python-jose = {version = "~=3.3.0", extras = ["cryptography"]}
+{%- endif %}
 {%- if cookiecutter.need_rabbitmq %}
+# rabbitmq
 aio-pika = "~=9.2.1"
 {%- endif %}
 {%- if cookiecutter.need_kafka %}
+# kafka
 aiokafka = "~=0.8.1"
-{%- endif %}
-{%- if cookiecutter.need_web_service %}
-fastapi = "~=0.101.0"
-uvicorn = {version = "~=0.23.2", extras = ["standard"]}
-asyncpg = "~=0.28.0"
-PyJWT = {version = "~=2.8.0", extras = ["crypto"]}
 {%- endif %}
 
 [dev-packages]
+black = "~=23.7.0"
+isort = "~=5.12.0"
+flake8 = "~=6.1.0"
 
 [requires]
 python_version = "3.11"
