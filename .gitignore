@@ -2,6 +2,6 @@ __pycache__/
 .pyc
 .python-version
 
-db.sqlite3
+.env
 
 .vscode/
