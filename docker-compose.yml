@@ -1,0 +1,9 @@
+services:
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: top-secret
+    volumes:
+      - './init-db.sh:/docker-entrypoint-initdb.d/init-db.sh'
+    ports:
+      - '5432:5432'
