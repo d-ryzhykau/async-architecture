@@ -1,15 +1,24 @@
 from typing import Annotated, List
 
 from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import UUID4, BaseModel, ConfigDict, EmailStr, constr
 
 from .db import Session
 from .models import Role
+from .settings import settings
 from .security import create_access_token, decode_access_token
 from .services import UserEmailAlreadyUsed, UserNotFound, UserService
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(url) for url in settings.cors_allow_origins],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def get_db_session():

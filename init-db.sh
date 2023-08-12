@@ -11,3 +11,4 @@ EOSQL
 }
 
 setup_service_db 'auth' 'auth-top-secret'
+setup_service_db 'task_tracker' 'task_tracker-top-secret'
