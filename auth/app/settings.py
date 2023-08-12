@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     jwt_secret_key: SecretStr
     jwt_expire_seconds: PositiveInt
     cors_allow_origins: List[str]  # TODO: add origin validation
+    kafka_address: str
 
     model_config = SettingsConfigDict(env_file=APP_ROOT_DIR.parent / ".env")
 

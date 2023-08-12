@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from .db import Session
+from .event_producer import send_events, UserCreated, UserUpdated, UserDeleted
 from .models import User
 from .security import get_password_hash, verify_password
 
@@ -79,7 +80,7 @@ class UserService:
                     raise UserEmailAlreadyUsed from exc
                 raise
 
-            # TODO: send event
+            send_events([UserCreated.from_user(user)])
 
         return user
 
@@ -107,7 +108,7 @@ class UserService:
                     raise UserEmailAlreadyUsed from exc
                 raise
 
-            # TODO: send event
+            send_events([UserUpdated.from_user(user)])
 
         return user
 
@@ -125,4 +126,4 @@ class UserService:
             user.is_deleted = True
             self.session.flush()
 
-            # TODO: send event
+            send_events([UserDeleted.from_user(user)])
