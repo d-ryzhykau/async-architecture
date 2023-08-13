@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     database_url: PostgresDsn
     jwt_secret_key: SecretStr
     auth_token_url: AnyHttpUrl
+    kafka_address: str
 
     model_config = SettingsConfigDict(env_file=APP_ROOT_DIR.parent / ".env")
 

@@ -3,6 +3,7 @@ from typing import List, Optional
 from sqlalchemy import select, text, update
 
 from .db import Session
+from .event_producer import send_events, NewTaskAdded, TaskAssigned, TaskCompleted
 from .models import Task, User
 
 
@@ -46,7 +47,7 @@ class TaskService:
             self.session.add(task)
             self.session.flush()
 
-            # TODO: send event
+            send_events([NewTaskAdded.from_task(task)])
 
         return task
 
@@ -63,7 +64,7 @@ class TaskService:
 
             task.is_completed = True
 
-            # TODO: send event
+            send_events([TaskCompleted.from_task(task)])
 
         return task
 
@@ -77,6 +78,11 @@ class TaskService:
         with self.session.begin():
             reassigned_tasks = self.session.scalars(reassign_open_tasks_query)
 
-            # TODO: send events
+            send_events(
+                [
+                    TaskAssigned.from_task(task)
+                    for task in reassigned_tasks
+                ]
+            )
 
         return reassigned_tasks
