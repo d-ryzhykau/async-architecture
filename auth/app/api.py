@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, ConfigDict, EmailStr, constr
 
 from .db import Session
-from .models import Role
+from .models import UserRole
 from .settings import settings
 from .security import create_access_token, decode_access_token
 from .services import UserEmailAlreadyUsed, UserNotFound, UserService
@@ -98,7 +98,7 @@ def token(
 class UserDataResponse(BaseModel):
     id: int
     email: str
-    role: Role
+    role: UserRole
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -137,7 +137,7 @@ def get_users(user_service: Annotated[UserService, Depends(get_user_service)]):
 
 class CreateUserRequest(BaseModel):
     email: EmailStr
-    role: Role
+    role: UserRole
     password: str = constr(min_length=8, max_length=256)
 
 
