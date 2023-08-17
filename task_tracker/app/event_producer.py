@@ -40,7 +40,7 @@ class BaseEvent:
 
 @dataclass
 class BaseTaskBusinessEvent(BaseEvent):
-    topic = "task_tracker.business.task.0"
+    topic = "tasks-lifecycle"
 
 
 @dataclass

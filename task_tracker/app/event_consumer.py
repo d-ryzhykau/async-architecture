@@ -70,7 +70,7 @@ def main():
         group_id="task_tracker",
         auto_offset_reset="earliest",
     )
-    consumer.subscribe("auth.cud.user.0")
+    consumer.subscribe("users-stream")
 
     logger.info("Consumer initialized. Start consuming messages...")
 

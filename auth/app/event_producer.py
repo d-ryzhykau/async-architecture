@@ -40,7 +40,7 @@ class BaseEvent:
 
 @dataclass
 class BaseUserCUDEvent(BaseEvent):
-    topic = "auth.cud.user.0"
+    topic = "users-stream"
 
     @classmethod
     def from_user(cls, user: User):
