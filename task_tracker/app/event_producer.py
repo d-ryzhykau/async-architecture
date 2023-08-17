@@ -7,7 +7,6 @@ from kafka import KafkaProducer
 from .models import Task
 from .settings import settings
 
-
 # TODO: don't initialize on import time
 producer = KafkaProducer(bootstrap_servers=settings.kafka_address)
 
@@ -106,5 +105,5 @@ class TaskCreated(BaseEvent):
                 "description": task.description,
                 "assignment_price": str(task.assignment_price),
                 "completion_price": str(task.completion_price),
-            }
+            },
         )

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import PostgresDsn, SecretStr, AnyHttpUrl
+from pydantic import AnyHttpUrl, PostgresDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 APP_ROOT_DIR = Path(__file__).parent

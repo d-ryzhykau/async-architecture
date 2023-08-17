@@ -7,7 +7,6 @@ from kafka import KafkaProducer
 from .models import User
 from .settings import settings
 
-
 # TODO: don't initialize on import time
 producer = KafkaProducer(bootstrap_servers=settings.kafka_address)
 
@@ -68,7 +67,7 @@ class BaseUserStreamEvent(BaseEvent):
                 "public_id": public_id,
                 "email": user.email,
                 "role": user.role.value,
-            }
+            },
         )
 
 

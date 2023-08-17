@@ -5,7 +5,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from .db import Session
-from .event_producer import send_events, UserCreated, UserUpdated, UserDeleted, NewUserAdded
+from .event_producer import (
+    NewUserAdded,
+    UserCreated,
+    UserDeleted,
+    UserUpdated,
+    send_events,
+)
 from .models import User
 from .security import get_password_hash, verify_password
 

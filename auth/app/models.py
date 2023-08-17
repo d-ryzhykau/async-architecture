@@ -1,7 +1,7 @@
 import enum
 from uuid import uuid4
 
-from sqlalchemy import Integer, UUID, Boolean, Enum, Index, String
+from sqlalchemy import UUID, Boolean, Enum, Index, Integer, String
 from sqlalchemy.orm import DeclarativeBase, mapped_column
 
 

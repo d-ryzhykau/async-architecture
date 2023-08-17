@@ -45,10 +45,7 @@ def user_updated_handler(data: dict):
 def user_deleted_handler(data: dict):
     with Session() as session:
         with session.begin():
-            session.execute(
-                delete(User)
-                .filter_by(public_id=data["public_id"])
-            )
+            session.execute(delete(User).filter_by(public_id=data["public_id"]))
     logger.debug("Deleted User %s", data["public_id"])
 
 

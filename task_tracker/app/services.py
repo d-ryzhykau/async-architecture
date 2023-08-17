@@ -5,10 +5,10 @@ from sqlalchemy import select, text, update
 from .db import Session
 from .event_producer import (
     NewTaskAdded,
-    send_events,
     TaskCompleted,
     TaskCreated,
     TaskReassigned,
+    send_events,
 )
 from .models import Task, User
 
@@ -84,11 +84,6 @@ class TaskService:
         with self.session.begin():
             reassigned_tasks = self.session.scalars(reassign_open_tasks_query)
 
-            send_events(
-                [
-                    TaskReassigned.from_task(task)
-                    for task in reassigned_tasks
-                ]
-            )
+            send_events([TaskReassigned.from_task(task) for task in reassigned_tasks])
 
         return reassigned_tasks

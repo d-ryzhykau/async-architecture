@@ -1,12 +1,17 @@
 from typing import Annotated, List, Literal, Optional
 
-from pydantic import BaseModel, UUID4, ConfigDict, field_validator
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from .db import Session
 from .security import decode_access_token
-from .services import TaskService, TaskNotFound, TaskAlreadyCompleted, TaskNotAssignedToUser
+from .services import (
+    TaskAlreadyCompleted,
+    TaskNotAssignedToUser,
+    TaskNotFound,
+    TaskService,
+)
 from .settings import settings
 
 app = FastAPI()
@@ -117,8 +122,8 @@ class UpdateTaskRequest(BaseModel):
         },
         status.HTTP_409_CONFLICT: {
             "description": "Task has already been completed",
-        }
-    }
+        },
+    },
 )
 def update_task(
     task_id: int,

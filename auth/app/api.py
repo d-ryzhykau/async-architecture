@@ -7,9 +7,9 @@ from pydantic import BaseModel, ConfigDict, EmailStr, constr
 
 from .db import Session
 from .models import UserRole
-from .settings import settings
 from .security import create_access_token, decode_access_token
 from .services import UserEmailAlreadyUsed, UserNotFound, UserService
+from .settings import settings
 
 app = FastAPI()
 app.add_middleware(

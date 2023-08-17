@@ -1,9 +1,9 @@
 from functools import partial
 from random import randint
-from uuid import uuid4
 from typing import List
+from uuid import uuid4
 
-from sqlalchemy import Integer, UUID, Boolean, String, ForeignKey, Text, Numeric
+from sqlalchemy import UUID, Boolean, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
