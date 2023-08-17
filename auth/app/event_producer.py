@@ -21,10 +21,12 @@ def send_events(events: List["BaseEvent"]):
     producer.flush()
 
 
+# TODO: add event metadata (producer, event_id)
 @dataclass
 class BaseEvent:
     topic: ClassVar[str]
     event_name: ClassVar[str]
+    event_version: ClassVar[int]
     key: str
     data: Optional[dict]
 
@@ -32,15 +34,17 @@ class BaseEvent:
         return json.dumps(
             {
                 "event_name": self.event_name,
+                "event_version": self.event_version,
                 "data": self.data,
             }
         )
 
 
 @dataclass
-class NewUserAdded(BaseEvent):
+class NewUserAddedV1(BaseEvent):
     topic = "users-lifecycle"
     event_name = "NewUserAdded"
+    event_version = 1
 
     @classmethod
     def from_user(cls, user: User):
@@ -72,15 +76,18 @@ class BaseUserStreamEvent(BaseEvent):
 
 
 @dataclass
-class UserCreated(BaseUserStreamEvent):
+class UserCreatedV1(BaseUserStreamEvent):
     event_name = "User.created"
+    event_version = 1
 
 
 @dataclass
-class UserUpdated(BaseUserStreamEvent):
+class UserUpdatedV1(BaseUserStreamEvent):
     event_name = "User.updated"
+    event_version = 1
 
 
 @dataclass
-class UserDeleted(BaseUserStreamEvent):
+class UserDeletedV1(BaseUserStreamEvent):
     event_name = "User.deleted"
+    event_version = 1

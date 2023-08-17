@@ -25,6 +25,7 @@ def send_events(events: List["BaseEvent"]):
 class BaseEvent:
     topic: ClassVar[str]
     event_name: ClassVar[str]
+    event_version: ClassVar[int]
     key: str
     data: Optional[dict]
 
@@ -32,6 +33,7 @@ class BaseEvent:
         return json.dumps(
             {
                 "event_name": self.event_name,
+                "event_version": self.event_version,
                 "data": self.data,
             }
         )
@@ -43,8 +45,9 @@ class BaseTaskBusinessEvent(BaseEvent):
 
 
 @dataclass
-class NewTaskAdded(BaseTaskBusinessEvent):
+class NewTaskAddedV1(BaseTaskBusinessEvent):
     event_name = "NewTaskAdded"
+    event_version = 1
 
     @classmethod
     def from_task(cls, task: Task):
@@ -59,8 +62,9 @@ class NewTaskAdded(BaseTaskBusinessEvent):
 
 
 @dataclass
-class TaskReassigned(BaseTaskBusinessEvent):
+class TaskReassignedV1(BaseTaskBusinessEvent):
     event_name = "TaskReassigned"
+    event_version = 1
 
     @classmethod
     def from_task(cls, task: Task):
@@ -75,8 +79,9 @@ class TaskReassigned(BaseTaskBusinessEvent):
 
 
 @dataclass
-class TaskCompleted(BaseTaskBusinessEvent):
+class TaskCompletedV1(BaseTaskBusinessEvent):
     event_name = "TaskCompleted"
+    event_version = 1
 
     @classmethod
     def from_task(cls, task: Task):
@@ -91,9 +96,10 @@ class TaskCompleted(BaseTaskBusinessEvent):
 
 
 @dataclass
-class TaskCreated(BaseEvent):
+class TaskCreatedV1(BaseEvent):
     topic = "tasks-stream"
     event_name = "Task.created"
+    event_version = 1
 
     @classmethod
     def from_task(cls, task: Task):
@@ -103,6 +109,7 @@ class TaskCreated(BaseEvent):
             data={
                 "public_id": public_id,
                 "description": task.description,
+                "jira_id": task.jira_id,
                 "assignment_price": str(task.assignment_price),
                 "completion_price": str(task.completion_price),
             },

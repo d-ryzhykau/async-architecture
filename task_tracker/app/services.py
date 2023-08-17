@@ -5,10 +5,10 @@ from sqlalchemy import select, text, update
 
 from .db import Session
 from .event_producer import (
-    NewTaskAdded,
-    TaskCompleted,
-    TaskCreated,
-    TaskReassigned,
+    NewTaskAddedV1,
+    TaskCompletedV1,
+    TaskCreatedV1,
+    TaskReassignedV1,
     send_events,
 )
 from .models import Task, User
@@ -70,7 +70,7 @@ class TaskService:
             self.session.add(task)
             self.session.flush()
 
-            send_events([TaskCreated.from_task(task), NewTaskAdded.from_task(task)])
+            send_events([TaskCreatedV1.from_task(task), NewTaskAddedV1.from_task(task)])
 
         return task
 
@@ -87,7 +87,7 @@ class TaskService:
 
             task.is_completed = True
 
-            send_events([TaskCompleted.from_task(task)])
+            send_events([TaskCompletedV1.from_task(task)])
 
         return task
 
@@ -101,6 +101,6 @@ class TaskService:
         with self.session.begin():
             reassigned_tasks = self.session.scalars(reassign_open_tasks_query)
 
-            send_events([TaskReassigned.from_task(task) for task in reassigned_tasks])
+            send_events([TaskReassignedV1.from_task(task) for task in reassigned_tasks])
 
         return reassigned_tasks

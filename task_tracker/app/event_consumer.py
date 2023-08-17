@@ -13,7 +13,7 @@ from .settings import settings
 logger = logging.getLogger(__name__)
 
 
-def user_created_handler(data: dict):
+def user_created_v1_handler(data: dict):
     with Session() as session:
         with session.begin():
             session.execute(
@@ -28,7 +28,7 @@ def user_created_handler(data: dict):
     logger.debug("Created User %s", data["public_id"])
 
 
-def user_updated_handler(data: dict):
+def user_updated_v1_handler(data: dict):
     with Session() as session:
         with session.begin():
             session.execute(
@@ -42,7 +42,7 @@ def user_updated_handler(data: dict):
     logger.debug("Updated User %s", data["public_id"])
 
 
-def user_deleted_handler(data: dict):
+def user_deleted_v1_handler(data: dict):
     with Session() as session:
         with session.begin():
             session.execute(delete(User).filter_by(public_id=data["public_id"]))
@@ -50,14 +50,15 @@ def user_deleted_handler(data: dict):
 
 
 EVENT_HANDLERS = {
-    "UserCreated": user_created_handler,
-    "UserUpdated": user_updated_handler,
-    "UserDeleted": user_deleted_handler,
+    ("User.created", 1): user_created_v1_handler,
+    ("User.updated", 1): user_updated_v1_handler,
+    ("User.deleted", 1): user_deleted_v1_handler,
 }
 
 
 class Event(BaseModel):
     event_name: str
+    event_version: int
     data: dict
 
 
@@ -86,7 +87,7 @@ def main():
             logger.exception("Message value has invalid format: %s", message_id)
             continue
 
-        handler = EVENT_HANDLERS.get(event.event_name)
+        handler = EVENT_HANDLERS.get((event.event_name, event.event_version))
         if not handler:
             logger.debug(
                 "Unknown event name: %r, message: %s",
