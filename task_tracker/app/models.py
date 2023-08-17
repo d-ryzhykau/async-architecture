@@ -30,6 +30,7 @@ class Task(Base):
     public_id = mapped_column(UUID, unique=True, default=uuid4)
     is_completed = mapped_column(Boolean, nullable=False, default=False)
     description = mapped_column(Text, nullable=False)
+    jira_id = mapped_column(String, nullable=True)
 
     assignment_price = mapped_column(
         Numeric(4, 2),

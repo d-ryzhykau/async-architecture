@@ -62,6 +62,7 @@ class TaskDataResponse(BaseModel):
     id: int
     is_completed: bool
     description: str
+    jira_id: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
 

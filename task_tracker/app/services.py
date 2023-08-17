@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional
 
 from sqlalchemy import select, text, update
@@ -25,6 +26,11 @@ class TaskAlreadyCompleted(Exception):
     """Raised on an attempt to complete an already completed Task."""
 
 
+# JIRA ID regex. Group 1 corresponds to text between square brackets:
+# "[jira-123] spam" -> group 1 = "jira-123"
+jira_id_re = re.compile(r"\[([\w\-]+)\]")
+
+
 class TaskService:
     def __init__(self, session: Session):
         self.session = session
@@ -45,8 +51,19 @@ class TaskService:
         )
 
     def create_task(self, description: str):
+        jira_id: Optional[str] = None
+
+        jira_id_match = jira_id_re.search(description)
+        if jira_id_match:
+            jira_id = jira_id_match.group(1).strip()
+            description = (
+                description[:jira_id_match.start()]
+                + description[jira_id_match.end():]
+            )
+
         task = Task(
-            description=description,
+            description=description.strip(),
+            jira_id=jira_id,
             assigned_to_public_id=self._get_random_worker_subquery(),
         )
         with self.session.begin():
