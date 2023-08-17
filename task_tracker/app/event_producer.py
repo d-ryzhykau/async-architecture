@@ -55,15 +55,13 @@ class NewTaskAdded(BaseTaskBusinessEvent):
             data={
                 "public_id": public_id,
                 "assigned_to_public_id": str(task.assigned_to_public_id),
-                "assignment_price": str(task.assignment_price),
-                "completion_price": str(task.completion_price),
             },
         )
 
 
 @dataclass
-class TaskAssigned(BaseTaskBusinessEvent):
-    event_name = "TaskAssigned"
+class TaskReassigned(BaseTaskBusinessEvent):
+    event_name = "TaskReassigned"
 
     @classmethod
     def from_task(cls, task: Task):
@@ -90,4 +88,23 @@ class TaskCompleted(BaseTaskBusinessEvent):
                 "public_id": public_id,
                 "assigned_to_public_id": str(task.assigned_to_public_id),
             },
+        )
+
+
+@dataclass
+class TaskCreated(BaseEvent):
+    topic = "tasks-stream"
+    event_name = "Task.created"
+
+    @classmethod
+    def from_task(cls, task: Task):
+        public_id = str(task.public_id)
+        return cls(
+            key=public_id,
+            data={
+                "public_id": public_id,
+                "description": task.description,
+                "assignment_price": str(task.assignment_price),
+                "completion_price": str(task.completion_price),
+            }
         )

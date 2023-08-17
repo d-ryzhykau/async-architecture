@@ -39,7 +39,24 @@ class BaseEvent:
 
 
 @dataclass
-class BaseUserCUDEvent(BaseEvent):
+class NewUserAdded(BaseEvent):
+    topic = "users-lifecycle"
+    event_name = "NewUserAdded"
+
+    @classmethod
+    def from_user(cls, user: User):
+        public_id = str(user.public_id)
+        return cls(
+            key=public_id,
+            data={
+                "public_id": public_id,
+                "role": user.role.value,
+            },
+        )
+
+
+@dataclass
+class BaseUserStreamEvent(BaseEvent):
     topic = "users-stream"
 
     @classmethod
@@ -56,15 +73,15 @@ class BaseUserCUDEvent(BaseEvent):
 
 
 @dataclass
-class UserCreated(BaseUserCUDEvent):
-    event_name = "UserCreated"
+class UserCreated(BaseUserStreamEvent):
+    event_name = "User.created"
 
 
 @dataclass
-class UserUpdated(BaseUserCUDEvent):
-    event_name = "UserUpdated"
+class UserUpdated(BaseUserStreamEvent):
+    event_name = "User.updated"
 
 
 @dataclass
-class UserDeleted(BaseUserCUDEvent):
-    event_name = "UserDeleted"
+class UserDeleted(BaseUserStreamEvent):
+    event_name = "User.deleted"

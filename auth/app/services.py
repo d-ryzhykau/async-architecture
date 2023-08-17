@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from .db import Session
-from .event_producer import send_events, UserCreated, UserUpdated, UserDeleted
+from .event_producer import send_events, UserCreated, UserUpdated, UserDeleted, NewUserAdded
 from .models import User
 from .security import get_password_hash, verify_password
 
@@ -82,7 +82,7 @@ class UserService:
 
             self.session.refresh(user)
 
-            send_events([UserCreated.from_user(user)])
+            send_events([UserCreated.from_user(user), NewUserAdded.from_user(user)])
 
         return user
 
