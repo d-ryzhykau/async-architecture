@@ -44,11 +44,11 @@ class BaseUserCUDEvent(BaseEvent):
 
     @classmethod
     def from_user(cls, user: User):
-        uuid_str = str(user.uuid)
+        public_id = str(user.public_id)
         return cls(
-            key=uuid_str,
+            key=public_id,
             data={
-                "uuid": uuid_str,
+                "public_id": public_id,
                 "email": user.email,
                 "role": user.role.value,
             }

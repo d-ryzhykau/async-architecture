@@ -22,7 +22,7 @@ def upgrade() -> None:
     op.create_table(
         "user",
         sa.Column(
-            "uuid",
+            "public_id",
             sa.UUID,
             primary_key=True,
         ),
@@ -36,12 +36,6 @@ def upgrade() -> None:
             sa.String,  # TODO: consider more efficient storage type e.g. boolean
             index=True,
             nullable=False,
-        ),
-        sa.Column(
-            "is_deleted",
-            sa.Boolean,
-            nullable=False,
-            default=False,
         ),
     )
 

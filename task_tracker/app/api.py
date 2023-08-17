@@ -1,4 +1,4 @@
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Literal, Optional
 
 from pydantic import BaseModel, UUID4, ConfigDict, field_validator
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -54,7 +54,7 @@ class RolesRequired:
 
 
 class TaskDataResponse(BaseModel):
-    uuid: UUID4
+    id: int
     is_completed: bool
     description: str
 
@@ -67,10 +67,13 @@ class TaskDataResponse(BaseModel):
     response_model=List[TaskDataResponse],
 )
 def get_tasks(
-    assigned_to_uuid: Optional[UUID4] = None,
+    token_data: Annotated[dict, Depends(get_token_data)],
+    assigned_to: Optional[Literal["me"]] = None,
     task_service: TaskService = Depends(get_task_service),
 ):
-    return task_service.get_tasks(assigned_to_uuid)
+    if assigned_to == "me":
+        return task_service.get_tasks(assigned_to_public_id=token_data["sub"])
+    return task_service.get_tasks()
 
 
 class CreateTaskRequest(BaseModel):
@@ -103,7 +106,7 @@ class UpdateTaskRequest(BaseModel):
 
 
 @app.patch(
-    "/tasks/{task_uuid}",
+    "/tasks/{task_id}",
     response_model=TaskDataResponse,
     responses={
         status.HTTP_403_FORBIDDEN: {
@@ -118,15 +121,15 @@ class UpdateTaskRequest(BaseModel):
     }
 )
 def update_task(
-    task_uuid: UUID4,
+    task_id: int,
     payload: UpdateTaskRequest,
     token_data: Annotated[dict, Depends(get_token_data)],
     task_service: Annotated[TaskService, Depends(get_task_service)],
 ):
     try:
         task = task_service.complete_task(
-            user_uuid=token_data["sub"],
-            task_uuid=task_uuid,
+            user_public_id=token_data["sub"],
+            task_id=task_id,
         )
     except TaskNotFound:
         raise HTTPException(

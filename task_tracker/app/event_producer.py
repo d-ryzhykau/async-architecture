@@ -49,12 +49,12 @@ class NewTaskAdded(BaseTaskBusinessEvent):
 
     @classmethod
     def from_task(cls, task: Task):
-        task_uuid_str = str(task.uuid)
+        public_id = str(task.public_id)
         return cls(
-            key=task_uuid_str,
+            key=public_id,
             data={
-                "uuid": task_uuid_str,
-                "assigned_to_uuid": str(task.assigned_to_uuid),
+                "public_id": public_id,
+                "assigned_to_public_id": str(task.assigned_to_public_id),
                 "assignment_price": str(task.assignment_price),
                 "completion_price": str(task.completion_price),
             },
@@ -67,12 +67,12 @@ class TaskAssigned(BaseTaskBusinessEvent):
 
     @classmethod
     def from_task(cls, task: Task):
-        task_uuid_str = str(task.uuid)
+        public_id = str(task.public_id)
         return cls(
-            key=task_uuid_str,
+            key=public_id,
             data={
-                "uuid": task_uuid_str,
-                "assigned_to_uuid": str(task.assigned_to_uuid),
+                "public_id": public_id,
+                "assigned_to_public_id": str(task.assigned_to_public_id),
             },
         )
 
@@ -83,11 +83,11 @@ class TaskCompleted(BaseTaskBusinessEvent):
 
     @classmethod
     def from_task(cls, task: Task):
-        task_uuid_str = str(task.uuid)
+        public_id = str(task.public_id)
         return cls(
-            key=task_uuid_str,
+            key=public_id,
             data={
-                "uuid": task_uuid_str,
-                "assigned_to_uuid": str(task.assigned_to_uuid),
+                "public_id": public_id,
+                "assigned_to_public_id": str(task.assigned_to_public_id),
             },
         )

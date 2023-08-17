@@ -1,7 +1,7 @@
 import enum
-import uuid
+from uuid import uuid4
 
-from sqlalchemy import UUID, Boolean, Enum, Index, String
+from sqlalchemy import Integer, UUID, Boolean, Enum, Index, String
 from sqlalchemy.orm import DeclarativeBase, mapped_column
 
 
@@ -20,8 +20,8 @@ class Role(enum.Enum):
 class User(Base):
     __tablename__ = "user"
 
-    # TODO: use separate internal and public ID's
-    uuid = mapped_column(UUID, primary_key=True, default=uuid.uuid4)
+    id = mapped_column(Integer, primary_key=True)
+    public_id = mapped_column(UUID, unique=True, default=uuid4)
     email = mapped_column(String(256), nullable=False, unique=True)
     role = mapped_column(Enum(Role), nullable=False)
     password_hash = mapped_column(String, nullable=False)

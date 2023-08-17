@@ -23,16 +23,16 @@ class TaskService:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_tasks(self, assigned_to_uuid: Optional[str]) -> List[Task]:
+    def get_tasks(self, assigned_to_public_id: Optional[str] = None) -> List[Task]:
         query = select(Task)
-        if assigned_to_uuid:
-            query = query.filter_by(assigned_to_uuid=assigned_to_uuid)
+        if assigned_to_public_id:
+            query = query.filter_by(assigned_to_public_id=assigned_to_public_id)
         return self.session.scalars(query).all()
 
     def _get_random_worker_subquery(self):
         return (
-            select(User.uuid)
-            .filter_by(role="worker", is_deleted=False)
+            select(User.public_id)
+            .filter_by(role="worker")
             .order_by(text("RANDOM()"))
             .limit(1)
             .scalar_subquery()
@@ -51,13 +51,13 @@ class TaskService:
 
         return task
 
-    def complete_task(self, user_uuid: str, task_uuid: str) -> Task:
-        query = select(Task).filter_by(uuid=task_uuid).with_for_update()
+    def complete_task(self, user_public_id: str, task_id: int) -> Task:
+        query = select(Task).filter_by(id=task_id).with_for_update()
         with self.session.begin():
             task = self.session.scalars(query).one_or_none()
             if task is None:
                 raise TaskNotFound
-            if task.assigned_to_uuid != user_uuid:
+            if task.assigned_to_public_id != user_public_id:
                 raise TaskNotAssignedToUser
             if task.is_completed:
                 raise TaskAlreadyCompleted

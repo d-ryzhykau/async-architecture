@@ -49,8 +49,8 @@ class UserService:
         query = self._get_active_users_query()
         return self.session.scalars(query).all()
 
-    def get_user_by_uuid(self, uuid: str) -> User:
-        query = self._get_active_users_query().filter_by(uuid=uuid)
+    def get_user_by_id(self, id_: int) -> Optional[User]:
+        query = self._get_active_users_query().filter_by(id_=id_)
         return self.session.scalars(query).one_or_none()
 
     def create_user(self, email: str, password: str, role: str) -> User:
@@ -80,11 +80,13 @@ class UserService:
                     raise UserEmailAlreadyUsed from exc
                 raise
 
+            self.session.refresh(user)
+
             send_events([UserCreated.from_user(user)])
 
         return user
 
-    def update_user(self, uuid: str, new_email: str) -> User:
+    def update_user(self, id_: int, new_email: str) -> User:
         """Update an existing User.
 
         Returns:
@@ -96,7 +98,7 @@ class UserService:
             `UserNotFound`: when a User with given UUID was not found.
         """
         with self.session.begin():
-            user = self.get_user_by_uuid(uuid)
+            user = self.get_user_by_id(id_)
 
             user.email = new_email
             try:
@@ -108,22 +110,26 @@ class UserService:
                     raise UserEmailAlreadyUsed from exc
                 raise
 
+            self.session.refresh(user)
+
             send_events([UserUpdated.from_user(user)])
 
         return user
 
-    def delete_user(self, uuid: str):
+    def delete_user(self, id_: int):
         """Soft-delete User with given UUID.
 
         Raises:
             `UserNotFound`: when a User with given UUID was not found.
         """
         with self.session.begin():
-            user = self.get_user_by_uuid(uuid)
+            user = self.get_user_by_id(id_)
             if user is None:
                 raise UserNotFound
 
             user.is_deleted = True
             self.session.flush()
+
+            self.session.refresh(user)
 
             send_events([UserDeleted.from_user(user)])

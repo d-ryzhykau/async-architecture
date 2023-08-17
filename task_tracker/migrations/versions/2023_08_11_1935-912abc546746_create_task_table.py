@@ -22,9 +22,14 @@ def upgrade() -> None:
     op.create_table(
         "task",
         sa.Column(
-            "uuid",
-            sa.UUID,
+            "id",
+            sa.Integer,
             primary_key=True,
+        ),
+        sa.Column(
+            "public_id",
+            sa.UUID,
+            unique=True,
         ),
         sa.Column(
             "is_completed",
@@ -48,9 +53,9 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column(
-            "assigned_to_uuid",
+            "assigned_to_public_id",
             sa.UUID,
-            sa.ForeignKey("user.uuid"),
+            sa.ForeignKey("user.public_id"),
             nullable=False,
         ),
     )

@@ -3,7 +3,7 @@ import sys
 
 from kafka import KafkaConsumer
 from pydantic import BaseModel, ValidationError
-from sqlalchemy import update
+from sqlalchemy import delete, update
 from sqlalchemy.dialects.postgresql import insert
 
 from .db import Session
@@ -19,13 +19,13 @@ def user_created_handler(data: dict):
             session.execute(
                 insert(User)
                 .values(
-                    uuid=data["uuid"],
+                    public_id=data["public_id"],
                     email=data["email"],
                     role=data["role"],
                 )
                 .on_conflict_do_nothing()
             )
-    logger.debug("Created User %s", data["uuid"])
+    logger.debug("Created User %s", data["public_id"])
 
 
 def user_updated_handler(data: dict):
@@ -33,24 +33,23 @@ def user_updated_handler(data: dict):
         with session.begin():
             session.execute(
                 update(User)
-                .filter_by(uuid=data["uuid"])
+                .filter_by(public_id=data["public_id"])
                 .values(
                     email=data["email"],
                     role=data["role"],
                 )
             )
-    logger.debug("Updated User %s", data["uuid"])
+    logger.debug("Updated User %s", data["public_id"])
 
 
 def user_deleted_handler(data: dict):
     with Session() as session:
         with session.begin():
             session.execute(
-                update(User)
-                .filter_by(uuid=data["uuid"])
-                .values(is_deleted=True)
+                delete(User)
+                .filter_by(public_id=data["public_id"])
             )
-    logger.debug("Deleted User %s", data["uuid"])
+    logger.debug("Deleted User %s", data["public_id"])
 
 
 EVENT_HANDLERS = {
