@@ -21,9 +21,14 @@ def upgrade() -> None:
     op.create_table(
         "user",
         sa.Column(
-            "uuid",
-            sa.UUID,
+            "id",
+            sa.Integer,
             primary_key=True,
+        ),
+        sa.Column(
+            "public_id",
+            sa.UUID,
+            unique=True,
         ),
         sa.Column(
             "email",

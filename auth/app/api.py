@@ -3,7 +3,7 @@ from typing import Annotated, List
 from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import UUID4, BaseModel, ConfigDict, EmailStr, constr
+from pydantic import BaseModel, ConfigDict, EmailStr, constr
 
 from .db import Session
 from .models import UserRole
@@ -85,9 +85,10 @@ def token(
     return {
         "access_token": create_access_token(
             {
-                "sub": str(user.uuid),
+                "sub": str(user.public_id),
                 "email": user.email,
                 "role": user.role.value,
+                "id": user.id,
             },
         ),
         "token_type": "bearer",
@@ -95,8 +96,8 @@ def token(
 
 
 class UserDataResponse(BaseModel):
-    uuid: UUID4
-    email: EmailStr
+    id: int
+    email: str
     role: UserRole
 
     model_config = ConfigDict(from_attributes=True)
@@ -115,7 +116,7 @@ def get_self(
     token_data: Annotated[dict, Depends(get_token_data)],
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
-    user = user_service.get_user_by_uuid(uuid=token_data["sub"])
+    user = user_service.get_user_by_id(token_data["id"])
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -175,7 +176,7 @@ class UpdateUserRequest(BaseModel):
 
 
 @app.patch(
-    "/users/{uuid}",
+    "/users/{id_}",
     dependencies=[Depends(RolesRequired("manager"))],
     response_model=UserDataResponse,
     responses={
@@ -188,15 +189,12 @@ class UpdateUserRequest(BaseModel):
     },
 )
 def update_user(
-    uuid: UUID4,
+    id_: int,
     payload: UpdateUserRequest,
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.update_user(
-            uuid=uuid,
-            new_email=payload.email,
-        )
+        user = user_service.update_user(id_=id_, new_email=payload.email)
     except UserNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -212,7 +210,7 @@ def update_user(
 
 
 @app.delete(
-    "/users/{uuid}",
+    "/users/{id_}",
     dependencies=[Depends(RolesRequired("manager"))],
     status_code=204,
     response_class=Response,
@@ -223,11 +221,11 @@ def update_user(
     },
 )
 def delete_user(
-    uuid: UUID4,
+    id_: int,
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.delete_user(uuid)
+        user = user_service.delete_user(id_)
     except UserNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
