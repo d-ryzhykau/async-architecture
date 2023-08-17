@@ -9,8 +9,7 @@ class Base(DeclarativeBase):
     pass
 
 
-# TODO: rename to UserRole, inherit from str
-class Role(enum.Enum):
+class UserRole(str, enum.Enum):
     manager = "manager"
     accountant = "accountant"
     worker = "worker"
@@ -23,7 +22,10 @@ class User(Base):
     # TODO: use separate internal and public ID's
     uuid = mapped_column(UUID, primary_key=True, default=uuid.uuid4)
     email = mapped_column(String(256), nullable=False, unique=True)
-    role = mapped_column(Enum(Role), nullable=False)
+    role = mapped_column(
+        Enum(UserRole, create_constraint=True, native_enum=False),
+        nullable=False,
+    )
     password_hash = mapped_column(String, nullable=False)
     is_deleted = mapped_column(Boolean, nullable=False, default=False)
 
