@@ -56,7 +56,7 @@ class UserService:
         return self.session.scalars(query).all()
 
     def get_user_by_id(self, id_: int) -> Optional[User]:
-        query = self._get_active_users_query().filter_by(id_=id_)
+        query = self._get_active_users_query().filter_by(id=id_)
         return self.session.scalars(query).one_or_none()
 
     def create_user(self, email: str, password: str, role: str) -> User:

@@ -47,7 +47,7 @@ class TaskService:
     def create_task(self, description: str):
         task = Task(
             description=description,
-            assigned_to_uuid=self._get_random_worker_subquery(),
+            assigned_to_public_id=self._get_random_worker_subquery(),
         )
         with self.session.begin():
             self.session.add(task)
@@ -78,7 +78,7 @@ class TaskService:
         reassign_open_tasks_query = (
             update(Task)
             .filter_by(is_completed=False)
-            .values(assigned_to_uuid=self._get_random_worker_subquery())
+            .values(assigned_to_public_id=self._get_random_worker_subquery())
             .returning(Task)
         )
         with self.session.begin():
