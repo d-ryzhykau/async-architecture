@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$defs": {
+    "event_data": {
+      "type": "object",
+      "properties": {
+        "public_id": {
+          "type": "string"
+        },
+        "assigned_to_public_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "public_id",
+        "assigned_to_public_id"
+      ]
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "event_name": {
+      "type": "string",
+      "enum": [
+        "TaskReassigned"
+      ]
+    },
+    "event_version": {
+      "type": "number",
+      "enum": [
+        1
+      ]
+    },
+    "data": {
+      "$ref": "#/$defs/event_data"
+    }
+  },
+  "required": [
+    "event_name",
+    "event_version",
+    "data"
+  ]
+}

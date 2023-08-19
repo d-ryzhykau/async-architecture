@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$defs": {
+    "event_data": {
+      "type": "object",
+      "properties": {
+        "public_id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "public_id",
+        "email",
+        "role"
+      ]
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "event_name": {
+      "type": "string",
+      "enum": [
+        "User.created"
+      ]
+    },
+    "event_version": {
+      "type": "number",
+      "enum": [
+        1
+      ]
+    },
+    "data": {
+      "$ref": "#/$defs/event_data"
+    }
+  },
+  "required": [
+    "event_name",
+    "event_version",
+    "data"
+  ]
+}

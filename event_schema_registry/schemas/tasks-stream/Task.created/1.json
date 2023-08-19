@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$defs": {
+    "event_data": {
+      "properties": {
+        "public_id": {
+          "title": "Public Id",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "jira_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Jira Id"
+        },
+        "assignment_price": {
+          "title": "Assignment Price",
+          "type": "string"
+        },
+        "completion_price": {
+          "title": "Completion Price",
+          "type": "string"
+        }
+      },
+      "required": [
+        "public_id",
+        "description",
+        "jira_id",
+        "assignment_price",
+        "completion_price"
+      ],
+      "title": "TaskStreamData",
+      "type": "object"
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "event_name": {
+      "type": "string",
+      "enum": [
+        "Task.created"
+      ]
+    },
+    "event_version": {
+      "type": "number",
+      "enum": [
+        1
+      ]
+    },
+    "data": {
+      "$ref": "#/$defs/event_data"
+    }
+  },
+  "required": [
+    "event_name",
+    "event_version",
+    "data"
+  ]
+}
