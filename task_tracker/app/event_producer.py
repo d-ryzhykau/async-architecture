@@ -62,6 +62,10 @@ class BaseEvent:
         }
 
 
+# TODO: rework Task-related business events structure
+# It might be more appropriate to populate Task prices with NewTaskAdded
+# as it reflects the business requirement "Task price is set once after its creation"
+# better
 @dataclass
 class BaseTaskBusinessEvent(BaseEvent):
     topic = "tasks-lifecycle"
@@ -80,6 +84,7 @@ class NewTaskAddedV1(BaseTaskBusinessEvent):
             data={
                 "public_id": public_id,
                 "assigned_to_public_id": str(task.assigned_to_public_id),
+                "assignment_price": str(task.assignment_price),
             },
         )
 
@@ -97,6 +102,7 @@ class TaskReassignedV1(BaseTaskBusinessEvent):
             data={
                 "public_id": public_id,
                 "assigned_to_public_id": str(task.assigned_to_public_id),
+                "assignment_price": str(task.assignment_price),
             },
         )
 
@@ -113,6 +119,8 @@ class TaskCompletedV1(BaseTaskBusinessEvent):
             key=public_id,
             data={
                 "public_id": public_id,
+                "assigned_to_public_id": str(task.assigned_to_public_id),
+                "completion_price": str(task.completion_price),
             },
         )
 

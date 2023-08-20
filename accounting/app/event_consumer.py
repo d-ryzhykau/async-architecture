@@ -7,10 +7,18 @@ from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 
 from .db import Session
-from .models import User
+from .models import User, Task
 from .settings import settings
+from .services import AccountingService
 
 logger = logging.getLogger(__name__)
+
+
+def new_user_added_v1_handler(data: dict):
+    with Session() as session:
+        accounting_service = AccountingService(session)
+        accounting_service.create_account(data["public_id"])
+    logger.debug("Created Account for User %s", data["public_id"])
 
 
 def user_created_v1_handler(data: dict):
@@ -53,10 +61,66 @@ def user_deleted_v1_handler(data: dict):
     logger.debug("Deleted User %s", data["public_id"])
 
 
+def task_created_v1_handler(data: dict):
+    with Session() as session:
+        with session.begin():
+            session.execute(
+                insert(Task)
+                .values(
+                    public_id=data["public_id"],
+                    description=data["description"],
+                    jira_id=data["jira_id"],
+                    assignment_price=data["assignment_price"],
+                    completion_price=data["completion_price"],
+                )
+            )
+    logger.debug("Created Task %s", data["public_id"])
+
+
+def new_task_added_v1_handler(data: dict):
+    with Session() as session:
+        accounting_service = AccountingService(session)
+        accounting_service.debit_for_task_assignment(
+            task_public_id=data["public_id"],
+            assigned_to_public_id=data["assigned_to_public_id"],
+            assignment_price=data["assignment_price"],
+        )
+    logger.debug("Processed assignment of new Task %s", data["public_id"])
+
+
+def task_reassigned_v1_handler(data: dict):
+    with Session() as session:
+        accounting_service = AccountingService(session)
+        accounting_service.debit_for_task_assignment(
+            task_public_id=data["public_id"],
+            assigned_to_public_id=data["assigned_to_public_id"],
+            assignment_price=data["assignment_price"],
+        )
+    logger.debug("Processed reassignment of Task %s", data["public_id"])
+
+
+def task_completed_v1_handler(data: dict):
+    with Session() as session:
+        accounting_service = AccountingService(session)
+        accounting_service.credit_for_task_completion(
+            task_public_id=data["public_id"],
+            assigned_to_public_id=data["assigned_to_public_id"],
+            completion_price=data["completion_price"],
+        )
+    logger.debug("Processed completion of Task %s", data["public_id"])
+
+
 EVENT_HANDLERS = {
+    # auth
     ("User.created", 1): user_created_v1_handler,
     ("User.updated", 1): user_updated_v1_handler,
     ("User.deleted", 1): user_deleted_v1_handler,
+    ("NewUserAdded", 1): new_user_added_v1_handler,
+    # task_tracker
+    ("Task.created", 1): task_created_v1_handler,
+    ("NewTaskAdded", 1): new_task_added_v1_handler,
+    ("TaskReassigned", 1): task_reassigned_v1_handler,
+    ("TaskCompleted", 1): task_completed_v1_handler,
 }
 
 
@@ -88,6 +152,7 @@ def main():
         try:
             event = Event.model_validate_json(message.value)
         except ValidationError:
+            # TODO: dead-letter queue
             logger.exception("Message value has invalid format: %s", message_id)
             continue
 
@@ -103,6 +168,7 @@ def main():
         try:
             handler(event.data)
         except Exception:
+            # TODO: dead-letter queue
             logger.exception("Failed processing event: %s", message_id)
 
 

@@ -7,10 +7,18 @@
       "properties": {
         "public_id": {
           "type": "string"
+        },
+        "assigned_to_public_id": {
+          "type": "string"
+        },
+        "completion_price": {
+          "type": "string"
         }
       },
       "required": [
-        "public_id"
+        "public_id",
+        "assigned_to_public_id",
+        "completion_price"
       ]
     }
   },

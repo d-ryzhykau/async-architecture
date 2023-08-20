@@ -10,11 +10,15 @@
         },
         "assigned_to_public_id": {
           "type": "string"
+        },
+        "assignment_price": {
+          "type": "string"
         }
       },
       "required": [
         "public_id",
-        "assigned_to_public_id"
+        "assigned_to_public_id",
+        "assignment_price"
       ]
     }
   },
