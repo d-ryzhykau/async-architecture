@@ -1,6 +1,7 @@
 services:
   database:
     image: postgres:15
+    container_name: database
     environment:
       POSTGRES_PASSWORD: top-secret
     volumes:
