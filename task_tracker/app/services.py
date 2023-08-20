@@ -45,7 +45,7 @@ class TaskService:
     def _get_random_worker_subquery(self):
         return (
             select(User.public_id)
-            .filter_by(role="worker")
+            .filter_by(role="worker", is_deleted=False)
             .order_by(text("RANDOM()"))
             .limit(1)
             .scalar_subquery()

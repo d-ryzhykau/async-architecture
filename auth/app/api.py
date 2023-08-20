@@ -3,7 +3,7 @@ from typing import Annotated, List
 from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, ConfigDict, EmailStr, constr
+from pydantic import BaseModel, ConfigDict, EmailStr, UUID4, constr
 
 from .db import Session
 from .models import UserRole
@@ -97,6 +97,7 @@ def token(
 
 class UserDataResponse(BaseModel):
     id: int
+    public_id: UUID4
     email: str
     role: UserRole
 
@@ -175,6 +176,7 @@ class UpdateUserRequest(BaseModel):
     email: EmailStr
 
 
+# TODO: consider using public_id in routes
 @app.patch(
     "/users/{id_}",
     dependencies=[Depends(RolesRequired("manager"))],
@@ -209,6 +211,7 @@ def update_user(
     return user
 
 
+# TODO: consider using public_id in routes
 @app.delete(
     "/users/{id_}",
     dependencies=[Depends(RolesRequired("manager"))],

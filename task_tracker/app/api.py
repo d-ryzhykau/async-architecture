@@ -2,7 +2,7 @@ from typing import Annotated, List, Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, UUID4, field_validator
 
 from .db import Session
 from .security import decode_access_token
@@ -60,9 +60,11 @@ class RolesRequired:
 
 class TaskDataResponse(BaseModel):
     id: int
+    public_id: UUID4
     is_completed: bool
     description: str
     jira_id: Optional[str]
+    assigned_to_public_id: UUID4
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -111,6 +113,7 @@ class UpdateTaskRequest(BaseModel):
         return v
 
 
+# TODO: consider using public_id in routes
 @app.patch(
     "/tasks/{task_id}",
     response_model=TaskDataResponse,

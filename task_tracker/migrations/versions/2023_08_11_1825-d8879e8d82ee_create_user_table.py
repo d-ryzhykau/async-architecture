@@ -36,6 +36,11 @@ def upgrade() -> None:
             index=True,
             nullable=False,
         ),
+        sa.Column(
+            "is_deleted",
+            sa.Boolean,
+            nullable=False,
+        )
     )
 
 
