@@ -31,6 +31,7 @@ class TaskAlreadyCompleted(Exception):
 jira_id_re = re.compile(r"\[([\w\-]+)\]")
 
 
+# TODO: rework to guarantee that kafka message is dispatched for each DB write
 class TaskService:
     def __init__(self, session: Session):
         self.session = session

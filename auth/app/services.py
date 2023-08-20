@@ -28,6 +28,7 @@ class UserPasswordVerificationFailed(Exception):
     """Raised on User password verification failure."""
 
 
+# TODO: rework to guarantee that kafka message is dispatched for each DB write
 class UserService:
     def __init__(self, session: Session):
         self.session = session
