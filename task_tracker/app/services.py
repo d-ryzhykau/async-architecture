@@ -100,7 +100,7 @@ class TaskService:
             .returning(Task)
         )
         with self.session.begin():
-            reassigned_tasks = self.session.scalars(reassign_open_tasks_query)
+            reassigned_tasks = self.session.scalars(reassign_open_tasks_query).all()
 
             send_events([TaskReassignedV1.from_task(task) for task in reassigned_tasks])
 
