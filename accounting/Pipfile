@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+# settings
+pydantic-settings = "~=2.0.2"
+# db
+psycopg2 = "~=2.9.7"
+sqlalchemy = "~=2.0.19"
+alembic = "~=1.11.2"
+# web
+fastapi = "~=0.101.0"
+python-multipart = "~=0.0.6"
+uvicorn = {version = "~=0.23.2", extras = ["standard"]}
+pydantic = {version = "~=2.1.1", extras = ["email"]}
+python-jose = {version = "~=3.3.0", extras = ["cryptography"]}
+# kafka
+aiokafka = "~=0.8.1"
+
+[dev-packages]
+black = "~=23.7.0"
+isort = "~=5.12.0"
+flake8 = "~=6.1.0"
+
+[requires]
+python_version = "3.11"
+python_full_version = "3.11.4"
