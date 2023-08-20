@@ -6,12 +6,10 @@ from jsonschema.protocols import Validator
 from jsonschema.validators import validator_for
 
 
-# TODO: move common schema registry for event structure
-
-class EventSchemaValidator:
-    def __init__(self, validator_cache_size=100, check_schema=False):
+# TODO: move common schemas to registry for reuse
+class EventSchemaRegistry:
+    def __init__(self, validator_cache_size=100):
         self._get_validator = lru_cache(validator_cache_size)(self._get_validator)
-        self._check_schema = check_schema
 
     @staticmethod
     def _get_schema(topic: str, event_name: str, event_version: int):
@@ -36,9 +34,6 @@ class EventSchemaValidator:
             event_version=event_version,
         )
         validator_class = validator_for(schema)
-        if self._check_schema:
-            validator_class.check_schema(schema)
-
         return validator_class(schema=schema)
 
     def validate(self, topic: str, event_name: str, event_version: int, event: dict):
