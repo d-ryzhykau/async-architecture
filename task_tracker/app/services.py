@@ -1,5 +1,6 @@
 import re
 from typing import List, Optional
+from uuid import UUID
 
 from sqlalchemy import select, text, update
 
@@ -26,6 +27,10 @@ class TaskAlreadyCompleted(Exception):
     """Raised on an attempt to complete an already completed Task."""
 
 
+class NoWorkerUsers(Exception):
+    """Raised when there are no worker Users to be assigned to Task."""
+
+
 # JIRA ID regex. Group 1 corresponds to text between square brackets:
 # "[jira-123] spam" -> group 1 = "jira-123"
 jira_id_re = re.compile(r"\[([\w\-]+)\]")
@@ -42,10 +47,15 @@ class TaskService:
             query = query.filter_by(assigned_to_public_id=assigned_to_public_id)
         return self.session.scalars(query).all()
 
-    def _get_random_worker_subquery(self):
+    def _get_worker_public_id_query(self):
         return (
             select(User.public_id)
             .filter_by(role="worker", is_deleted=False)
+        )
+
+    def _get_random_worker_public_id_subquery(self):
+        return (
+            self._get_worker_public_id_query()
             .order_by(text("RANDOM()"))
             .limit(1)
             .scalar_subquery()
@@ -65,9 +75,15 @@ class TaskService:
         task = Task(
             description=description.strip(),
             jira_id=jira_id,
-            assigned_to_public_id=self._get_random_worker_subquery(),
+            assigned_to_public_id=self._get_random_worker_public_id_subquery(),
         )
+
         with self.session.begin():
+            if not self.session.scalars(
+                self._get_worker_public_id_query().exists().select()
+            ).one():
+                raise NoWorkerUsers
+
             self.session.add(task)
             self.session.flush()
 
@@ -81,7 +97,7 @@ class TaskService:
             task = self.session.scalars(query).one_or_none()
             if task is None:
                 raise TaskNotFound
-            if task.assigned_to_public_id != user_public_id:
+            if task.assigned_to_public_id != UUID(user_public_id):
                 raise TaskNotAssignedToUser
             if task.is_completed:
                 raise TaskAlreadyCompleted
@@ -96,10 +112,17 @@ class TaskService:
         reassign_open_tasks_query = (
             update(Task)
             .filter_by(is_completed=False)
-            .values(assigned_to_public_id=self._get_random_worker_subquery())
+            .values(
+                assigned_to_public_id=self._get_random_worker_public_id_subquery(),
+            )
             .returning(Task)
         )
         with self.session.begin():
+            if not self.session.scalars(
+                self._get_worker_public_id_query().exists().select()
+            ).one():
+                raise NoWorkerUsers
+
             reassigned_tasks = self.session.scalars(reassign_open_tasks_query).all()
 
             send_events([TaskReassignedV1.from_task(task) for task in reassigned_tasks])
