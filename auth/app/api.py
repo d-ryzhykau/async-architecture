@@ -158,7 +158,7 @@ def create_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.create_user(
+        return user_service.create_user(
             email=payload.email,
             role=payload.role,
             password=payload.password,
@@ -168,8 +168,6 @@ def create_user(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email is already used",
         )
-
-    return user
 
 
 class UpdateUserRequest(BaseModel):
@@ -196,7 +194,7 @@ def update_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.update_user(id_=id_, new_email=payload.email)
+        return user_service.update_user(id_=id_, new_email=payload.email)
     except UserNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -207,8 +205,6 @@ def update_user(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email is already used",
         )
-
-    return user
 
 
 # TODO: consider using public_id in routes
@@ -228,11 +224,9 @@ def delete_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.delete_user(id_)
+        user_service.delete_user(id_)
     except UserNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Not found",
         )
-
-    return user
