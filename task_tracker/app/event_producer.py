@@ -2,8 +2,8 @@ import json
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
-from kafka import KafkaProducer
 from event_schema_registry import EventSchemaRegistry
+from kafka import KafkaProducer
 
 from .models import Task
 from .settings import settings

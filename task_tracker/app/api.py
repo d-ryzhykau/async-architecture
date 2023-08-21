@@ -2,7 +2,7 @@ from typing import Annotated, List, Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel, ConfigDict, UUID4, field_validator
+from pydantic import UUID4, BaseModel, ConfigDict, field_validator
 
 from .db import Session
 from .security import decode_access_token

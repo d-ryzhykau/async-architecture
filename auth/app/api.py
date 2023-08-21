@@ -3,7 +3,7 @@ from typing import Annotated, List
 from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, ConfigDict, EmailStr, UUID4, constr
+from pydantic import UUID4, BaseModel, ConfigDict, EmailStr, constr
 
 from .db import Session
 from .models import UserRole

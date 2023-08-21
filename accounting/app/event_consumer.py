@@ -8,9 +8,9 @@ from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 
 from .db import Session
-from .models import User, Task, AuditLogRecordReason
-from .settings import settings
+from .models import AuditLogRecordReason, Task, User
 from .services import AccountingService
+from .settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +61,7 @@ def task_created_v1_handler(data: dict):
     with Session() as session:
         with session.begin():
             session.execute(
-                insert(Task)
-                .values(
+                insert(Task).values(
                     public_id=data["public_id"],
                     description=data["description"],
                     jira_id=data["jira_id"],

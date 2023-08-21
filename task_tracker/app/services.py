@@ -48,10 +48,7 @@ class TaskService:
         return self.session.scalars(query).all()
 
     def _get_worker_public_id_query(self):
-        return (
-            select(User.public_id)
-            .filter_by(role="worker", is_deleted=False)
-        )
+        return select(User.public_id).filter_by(role="worker", is_deleted=False)
 
     def _get_random_worker_public_id_subquery(self):
         return (
@@ -68,8 +65,8 @@ class TaskService:
         if jira_id_match:
             jira_id = jira_id_match.group(1).strip()
             description = (
-                description[:jira_id_match.start()]
-                + description[jira_id_match.end():]
+                description[: jira_id_match.start()]
+                + description[jira_id_match.end() :]
             )
 
         task = Task(

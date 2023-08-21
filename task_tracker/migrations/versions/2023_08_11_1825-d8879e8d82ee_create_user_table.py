@@ -40,7 +40,7 @@ def upgrade() -> None:
             "is_deleted",
             sa.Boolean,
             nullable=False,
-        )
+        ),
     )
 
 

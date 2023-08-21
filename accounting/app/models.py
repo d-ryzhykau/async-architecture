@@ -1,12 +1,12 @@
 import enum
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 from sqlalchemy import (
-    Enum,
     UUID,
     Boolean,
     DateTime,
+    Enum,
     ForeignKey,
     Integer,
     Numeric,
