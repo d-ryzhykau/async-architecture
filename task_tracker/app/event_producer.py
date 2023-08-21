@@ -62,10 +62,6 @@ class BaseEvent:
         }
 
 
-# TODO: rework Task-related business events structure
-# It might be more appropriate to populate Task prices with NewTaskAdded
-# as it reflects the business requirement "Task price is set once after its creation"
-# better
 @dataclass
 class BaseTaskBusinessEvent(BaseEvent):
     topic = "tasks-lifecycle"

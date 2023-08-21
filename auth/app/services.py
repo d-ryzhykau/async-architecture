@@ -6,7 +6,6 @@ from sqlalchemy.exc import IntegrityError
 
 from .db import Session
 from .event_producer import (
-    NewUserAddedV1,
     UserCreatedV1,
     UserDeletedV1,
     UserUpdatedV1,
@@ -89,7 +88,7 @@ class UserService:
 
             self.session.refresh(user)
 
-            send_events([UserCreatedV1.from_user(user), NewUserAddedV1.from_user(user)])
+            send_events([UserCreatedV1.from_user(user)])
 
         return user
 

@@ -64,24 +64,6 @@ class BaseEvent:
 
 
 @dataclass
-class NewUserAddedV1(BaseEvent):
-    topic = "users-lifecycle"
-    event_name = "NewUserAdded"
-    event_version = 1
-
-    @classmethod
-    def from_user(cls, user: User):
-        public_id = str(user.public_id)
-        return cls(
-            key=public_id,
-            data={
-                "public_id": public_id,
-                "role": user.role.value,
-            },
-        )
-
-
-@dataclass
 class BaseUserStreamEvent(BaseEvent):
     topic = "users-stream"
 
