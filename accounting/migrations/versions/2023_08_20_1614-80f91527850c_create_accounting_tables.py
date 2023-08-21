@@ -40,29 +40,6 @@ def upgrade() -> None:
         ),
     )
     op.create_table(
-        "billing_cycle",
-        sa.Column(
-            "id",
-            sa.Integer,
-            primary_key=True,
-        ),
-        sa.Column(
-            "closed_at",
-            sa.DateTime,
-            nullable=False,
-        ),
-        sa.Column(
-            "credit",
-            sa.Numeric(6, 2),
-            nullable=False,
-        ),
-        sa.Column(
-            "debit",
-            sa.Numeric(6, 2),
-            nullable=False,
-        ),
-    )
-    op.create_table(
         "audit_log_record",
         sa.Column(
             "id",
@@ -77,6 +54,17 @@ def upgrade() -> None:
         sa.Column(
             "debit",
             sa.Numeric(6, 2),
+            nullable=False,
+        ),
+        sa.Column(
+            "reason",
+            sa.Enum(
+                "task_assigned",
+                "task_completed",
+                "payout",
+                create_constraint=True,
+                native_enum=False,
+            ),
             nullable=False,
         ),
         sa.Column(
@@ -95,16 +83,9 @@ def upgrade() -> None:
             sa.ForeignKey("account.id"),
             nullable=False,
         ),
-        sa.Column(
-            "billing_cycle_id",
-            sa.Integer,
-            sa.ForeignKey("billing_cycle.id"),
-            nullable=True,
-        ),
     )
 
 
 def downgrade() -> None:
     op.drop_table("audit_log_record")
-    op.drop_table("billing_cycle")
     op.drop_table("account")

@@ -50,12 +50,6 @@ def upgrade() -> None:
             primary_key=True,
         ),
         sa.Column(
-            "is_completed",
-            sa.Boolean,
-            nullable=False,
-            default=False,
-        ),
-        sa.Column(
             "description",
             sa.Text,
             nullable=False,
@@ -73,12 +67,6 @@ def upgrade() -> None:
         sa.Column(
             "completion_price",
             sa.Numeric(precision=4, scale=2),
-            nullable=False,
-        ),
-        sa.Column(
-            "assigned_to_public_id",
-            sa.UUID,
-            sa.ForeignKey("user.public_id"),
             nullable=False,
         ),
     )

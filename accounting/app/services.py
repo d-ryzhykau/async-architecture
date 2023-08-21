@@ -1,158 +1,121 @@
+from datetime import date
 from decimal import Decimal
+from typing import Optional
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, cast, Date, select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from .db import Session
-from .models import Account, AuditLogRecord, BillingCycle
+from .models import Account, AuditLogRecord, AuditLogRecordReason
 
 
 class AccountingService:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_running_billing_cycle(self):
+    def get_stats(self, stats_date: date):
         query = select(
             func.coalesce(func.sum(AuditLogRecord.credit), 0).label("credit"),
             func.coalesce(func.sum(AuditLogRecord.debit), 0).label("debit"),
         ).filter(
-            AuditLogRecord.billing_cycle_id == None  # noqa: E711
+            AuditLogRecord.reason != AuditLogRecordReason.payout,
+            cast(AuditLogRecord.created_at, Date) == stats_date,
         )
-        billing_cycle_data = self.session.execute(query).one()
-        return {"credit": billing_cycle_data.credit, "debit": billing_cycle_data.debit}
-
-    def get_closed_billing_cycles(self):
-        query = select(BillingCycle)
-        return self.session.scalars(query).all()
+        return self.session.execute(query).one()
 
     def get_account(self, user_public_id: str):
         query = (
             select(Account)
             .filter_by(owner_public_id=user_public_id)
-            .options(joinedload(Account.audit_log_records))
+            .options(selectinload(Account.audit_log_records))
         )
         return self.session.scalars(query).one_or_none()
 
-    def create_account(self, user_public_id: str):
-        query = (
+    def _upsert_account(self, owner_public_id: str, balance_diff: Decimal) -> Account:
+        return self.session.scalars(
             insert(Account)
-            .values(balance=0, owner_public_id=user_public_id)
-            .on_conflict_do_nothing()
+            .values(
+                owner_public_id=owner_public_id,
+                balance=balance_diff,
+            )
+            .on_conflict_do_update(
+                index_elements=[Account.owner_public_id],
+                set_={Account.balance: Account.balance + balance_diff},
+            )
             .returning(Account)
-        )
-        return self.session.scalars(query).one()
+        ).one()
 
-    # TODO: split into 2 services: new task handler and task reassigned handler
-    def debit_for_task_assignment(
+    def create_account(self, owner_public_id: str):
+        return self._upsert_account(owner_public_id, 0)
+
+    def debit_account(
         self,
-        task_public_id: str,
-        assigned_to_public_id: str,
-        assignment_price: str,
+        owner_public_id: str,
+        amount: Decimal,
+        reason: AuditLogRecordReason,
+        info: Optional[dict] = None,
     ):
-        assignment_price = Decimal(assignment_price)
-
         with self.session.begin():
-            account_id = self.session.scalars(
-                insert(Account)
-                .values(
-                    owner_public_id=assigned_to_public_id,
-                    balance=-assignment_price,
-                )
-                .on_conflict_do_update(
-                    Account.owner_public_id,
-                    set_={Account.balance: Account.balance - assignment_price},
-                )
-                .returning(Account.id)
-            ).one()
-
-            audit_log_record = AuditLogRecord(
-                debit=assignment_price,
-                account_id=account_id,
-                info={
-                    "reason": "task_assigned",
-                    "task_public_id": task_public_id,
-                },
+            account = self._upsert_account(
+                owner_public_id=owner_public_id,
+                balance_diff=amount,
             )
-            self.session.add(audit_log_record)
 
+            self.session.add(
+                AuditLogRecord(
+                    account_id=account.id,
+                    debit=amount,
+                    reason=reason,
+                    info=info,
+                )
+            )
+            # TODO: send account balance changed event
             self.session.flush()
 
-    def credit_for_task_completion(
+    def credit_account(
         self,
-        task_public_id: str,
-        assigned_to_public_id: str,
-        completion_price: str,
+        owner_public_id: str,
+        amount: Decimal,
+        reason: AuditLogRecordReason,
+        info: Optional[dict] = None,
     ):
-        completion_price = Decimal(completion_price)
-
         with self.session.begin():
-            account_id = self.session.scalars(
-                insert(Account)
-                .values(
-                    owner_public_id=assigned_to_public_id,
-                    balance=completion_price,
-                )
-                .on_conflict_do_update(
-                    Account.owner_public_id,
-                    set_={Account.balance: Account.balance + completion_price},
-                )
-                .returning(Account.id)
-            ).one()
-
-            audit_log_record = AuditLogRecord(
-                credit=completion_price,
-                account_id=account_id,
-                info={
-                    "reason": "task_completed",
-                    "task_public_id": task_public_id,
-                },
+            account = self._upsert_account(
+                owner_public_id=owner_public_id,
+                balance_diff=-amount,
             )
-            self.session.add(audit_log_record)
 
+            self.session.add(
+                AuditLogRecord(
+                    account_id=account.id,
+                    credit=amount,
+                    reason=reason,
+                    info=info,
+                )
+            )
+            # TODO: send account balance changed event
             self.session.flush()
 
-    def close_billing_cycle(self):
-        # TODO: call in cron
-        billing_cycle_credit_subquery = (
-            select(
-                func.coalesce(func.sum(AuditLogRecord.credit), 0)
-            )
-            .filter(AuditLogRecord.billing_cycle_id == None)  # noqa: E711
-            .subquery()
-        )
-        billing_cycle_debit_subquery = (
-            select(
-                func.coalesce(func.sum(AuditLogRecord.debit), 0)
-            )
-            .filter(AuditLogRecord.billing_cycle_id == None)  # noqa: E711
-            .subquery()
+    def payout(self, batch_size=50):
+        payout_accounts_query = (
+            select(Account)
+            .where(Account.balance > 0)
+            .with_for_update()
+            .options(joinedload(Account.owner))
         )
         with self.session.begin():
-            billing_cycle_id = self.session.scalars(
-                insert(BillingCycle)
-                .values(
-                    credit=billing_cycle_credit_subquery,
-                    debit=billing_cycle_debit_subquery,
-                )
-                .returning(BillingCycle.id)
-            ).one()
-
-            self.session.execute(
-                update(AuditLogRecord)
-                .filter(AuditLogRecord.billing_cycle_id == None)  # noqa: E711
-                .values(billing_cycle_id=billing_cycle_id)
-            )
-
-            for account in self.session.scalars(select(Account).options(joinedload(Accoun.owner))):
-                if account.balance > 0:
-                    payout_audit_log_record = AuditLogRecord(
+            unpaid_accounts = self.session.scalars(payout_accounts_query).all()
+            for account in unpaid_accounts:
+                old_balance = account.balance
+                account.balance = 0
+                self.session.add(
+                    AuditLogRecord(
                         account=account,
-                        credit=account.balance,
-                        info={"reason": "payout"},
+                        credit=old_balance,
+                        reason=AuditLogRecordReason.payout,
                     )
-                    self.session.add(payout_audit_log_record)
-                    self.flush()
-
-                    # TODO: replace with SMTP call to send email
-                    print(f"to {account.user.email}: You got paid {account.balance}!")
+                )
+                # TODO: send account balance changed event
+                # TODO: replace with SMTP call to send email
+                print(f"{account.user.email} got paid {old_balance}.")

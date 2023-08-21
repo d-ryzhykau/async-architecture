@@ -1,12 +1,13 @@
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
-from typing import Annotated, Any, List
+from typing import Annotated, Any, List, Union, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, ConfigDict
 
 from .db import Session
+from .models import AuditLogRecordReason
 from .security import decode_access_token
 from .services import AccountingService
 from .settings import settings
@@ -55,7 +56,7 @@ class RolesRequired:
             )
 
 
-class RunningBillingCycleResponseData(BaseModel):
+class StatsResponseData(BaseModel):
     credit: Decimal
     debit: Decimal
 
@@ -63,46 +64,31 @@ class RunningBillingCycleResponseData(BaseModel):
 
 
 @app.get(
-    "/billing-cycles/running",
+    "/stats/{stats_date}",
     dependencies=[Depends(RolesRequired(["manager", "accountant"]))],
-    response_model=RunningBillingCycleResponseData,
+    response_model=StatsResponseData,
 )
-def get_running_billing_cycle(
+def get_stats(
+    stats_date: Union[date, Literal["today"]],
     accounting_service: Annotated[AccountingService, Depends(get_accounting_service)],
 ):
-    return accounting_service.get_running_billing_cycle()
-
-
-class ClosedBillingCycleResponseData(BaseModel):
-    closed_at: datetime
-    credit: Decimal
-    debit: Decimal
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-@app.get(
-    "/billing-cycles/closed",
-    dependencies=[Depends(RolesRequired(["manager", "accountant"]))],
-    response_model=List[ClosedBillingCycleResponseData],
-)
-def get_closed_billing_cycles(
-    accounting_service: Annotated[AccountingService, Depends(get_accounting_service)],
-):
-    return accounting_service.get_closed_billing_cycles()
+    if stats_date == "today":
+        stats_date = datetime.utcnow().date()
+    return accounting_service.get_stats(stats_date)
 
 
 class AuditLogRecordResponseData(BaseModel):
-    credit: str
-    debit: str
+    credit: Decimal
+    debit: Decimal
     created_at: datetime
-    metadata: Any
+    reason: AuditLogRecordReason
+    info: Any
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class AccountResponseData(BaseModel):
-    balance: str
+    balance: Decimal
     audit_log_records: List[AuditLogRecordResponseData]
 
     model_config = ConfigDict(from_attributes=True)

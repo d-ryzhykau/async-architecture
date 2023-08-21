@@ -1,5 +1,6 @@
 import logging
 import sys
+from decimal import Decimal
 
 from kafka import KafkaConsumer
 from pydantic import BaseModel, ValidationError
@@ -7,22 +8,16 @@ from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 
 from .db import Session
-from .models import User, Task
+from .models import User, Task, AuditLogRecordReason
 from .settings import settings
 from .services import AccountingService
 
 logger = logging.getLogger(__name__)
 
 
-def new_user_added_v1_handler(data: dict):
-    with Session() as session:
-        accounting_service = AccountingService(session)
-        accounting_service.create_account(data["public_id"])
-    logger.debug("Created Account for User %s", data["public_id"])
-
-
 def user_created_v1_handler(data: dict):
     with Session() as session:
+        accounting_service = AccountingService(session)
         with session.begin():
             session.execute(
                 insert(User)
@@ -33,6 +28,7 @@ def user_created_v1_handler(data: dict):
                 )
                 .on_conflict_do_nothing()
             )
+            accounting_service.create_account(data["public_id"])
     logger.debug("Created User %s", data["public_id"])
 
 
@@ -77,35 +73,41 @@ def task_created_v1_handler(data: dict):
     logger.debug("Created Task %s", data["public_id"])
 
 
+# TODO: add only-once processing guarantees to avoid wrongful balance changes
 def new_task_added_v1_handler(data: dict):
     with Session() as session:
         accounting_service = AccountingService(session)
-        accounting_service.debit_for_task_assignment(
-            task_public_id=data["public_id"],
-            assigned_to_public_id=data["assigned_to_public_id"],
-            assignment_price=data["assignment_price"],
+        accounting_service.credit_account(
+            owner_public_id=data["assigned_to_public_id"],
+            amount=Decimal(data["assignment_price"]),
+            reason=AuditLogRecordReason.task_assigned,
+            info={"task_public_id": data["public_id"]},
         )
     logger.debug("Processed assignment of new Task %s", data["public_id"])
 
 
+# TODO: add only-once processing guarantees to avoid wrongful balance changes
 def task_reassigned_v1_handler(data: dict):
     with Session() as session:
         accounting_service = AccountingService(session)
-        accounting_service.debit_for_task_assignment(
-            task_public_id=data["public_id"],
-            assigned_to_public_id=data["assigned_to_public_id"],
-            assignment_price=data["assignment_price"],
+        accounting_service.credit_account(
+            owner_public_id=data["assigned_to_public_id"],
+            amount=Decimal(data["assignment_price"]),
+            reason=AuditLogRecordReason.task_assigned,
+            info={"task_public_id": data["public_id"]},
         )
     logger.debug("Processed reassignment of Task %s", data["public_id"])
 
 
+# TODO: add only-once processing guarantees to avoid wrongful balance changes
 def task_completed_v1_handler(data: dict):
     with Session() as session:
         accounting_service = AccountingService(session)
-        accounting_service.credit_for_task_completion(
-            task_public_id=data["public_id"],
-            assigned_to_public_id=data["assigned_to_public_id"],
-            completion_price=data["completion_price"],
+        accounting_service.debit_account(
+            owner_public_id=data["assigned_to_public_id"],
+            amount=Decimal(data["completion_price"]),
+            reason=AuditLogRecordReason.task_completed,
+            info={"task_public_id": data["public_id"]},
         )
     logger.debug("Processed completion of Task %s", data["public_id"])
 
@@ -115,7 +117,6 @@ EVENT_HANDLERS = {
     ("User.created", 1): user_created_v1_handler,
     ("User.updated", 1): user_updated_v1_handler,
     ("User.deleted", 1): user_deleted_v1_handler,
-    ("NewUserAdded", 1): new_user_added_v1_handler,
     # task_tracker
     ("Task.created", 1): task_created_v1_handler,
     ("NewTaskAdded", 1): new_task_added_v1_handler,
@@ -133,10 +134,10 @@ class Event(BaseModel):
 def main():
     consumer = KafkaConsumer(
         bootstrap_servers=settings.kafka_address,
-        group_id="task_tracker",
+        group_id="accounting",
         auto_offset_reset="earliest",
     )
-    consumer.subscribe("users-stream")
+    consumer.subscribe(["users-stream", "tasks-stream", "tasks-lifecycle"])
 
     logger.info("Consumer initialized. Start consuming messages...")
 
