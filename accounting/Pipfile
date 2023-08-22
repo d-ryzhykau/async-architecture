@@ -18,6 +18,7 @@ pydantic = {version = "~=2.1.1", extras = ["email"]}
 python-jose = {version = "~=3.3.0", extras = ["cryptography"]}
 # kafka
 aiokafka = "~=0.8.1"
+event-schema-registry = {editable = true, path = "./../event_schema_registry/python"}
 
 [dev-packages]
 black = "~=23.7.0"

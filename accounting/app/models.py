@@ -1,6 +1,7 @@
 import enum
 from datetime import datetime
 from typing import List
+from uuid import uuid4
 
 from sqlalchemy import (
     UUID,
@@ -47,6 +48,7 @@ class Account(Base):
     __tablename__ = "account"
 
     id = mapped_column(Integer, primary_key=True)
+    public_id = mapped_column(UUID, unique=True, nullable=False, default=uuid4)
     balance = mapped_column(
         Numeric(6, 2),
         nullable=False,

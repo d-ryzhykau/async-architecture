@@ -27,6 +27,11 @@ def upgrade() -> None:
             primary_key=True,
         ),
         sa.Column(
+            "public_id",
+            sa.UUID,
+            unique=True,
+        ),
+        sa.Column(
             "balance",
             sa.Numeric(6, 2),
             nullable=False,

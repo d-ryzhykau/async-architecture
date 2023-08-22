@@ -6,6 +6,7 @@ from sqlalchemy import Date, cast, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import joinedload, selectinload
 
+from .event_producer import AccountCreatedV1, AccountUpdatedV1, send_events
 from .db import Session
 from .models import Account, AuditLogRecord, AuditLogRecordReason
 
@@ -32,6 +33,8 @@ class AccountingService:
         )
         return self.session.scalars(query).one_or_none()
 
+    # TODO: rework event consumer logic to guarantee that Account is created
+    # before balance changes are applied to it
     def _upsert_account(self, owner_public_id: str, balance_diff: Decimal) -> Account:
         return self.session.scalars(
             insert(Account)
@@ -47,7 +50,10 @@ class AccountingService:
         ).one()
 
     def create_account(self, owner_public_id: str):
-        return self._upsert_account(owner_public_id, 0)
+        with self.session.begin():
+            account = self._upsert_account(owner_public_id, 0)
+            send_events([AccountCreatedV1.from_account(account)])
+        return account
 
     def debit_account(
         self,
@@ -70,8 +76,9 @@ class AccountingService:
                     info=info,
                 )
             )
-            # TODO: send account balance changed event
             self.session.flush()
+
+            send_events([AccountUpdatedV1.from_account(account)])
 
     def credit_account(
         self,
@@ -94,10 +101,12 @@ class AccountingService:
                     info=info,
                 )
             )
-            # TODO: send account balance changed event
             self.session.flush()
 
-    def payout(self, batch_size=50):
+            send_events([AccountUpdatedV1.from_account(account)])
+
+    def payout(self):
+        # TODO: process accounts iteratively to avoid OOMs and long DB table locks
         payout_accounts_query = (
             select(Account)
             .where(Account.balance > 0)
@@ -119,3 +128,7 @@ class AccountingService:
                 # TODO: send account balance changed event
                 # TODO: replace with SMTP call to send email
                 print(f"{account.user.email} got paid {old_balance}.")
+
+            send_events(
+                [AccountUpdatedV1.from_account(account) for account in unpaid_accounts]
+            )
