@@ -17,8 +17,11 @@ class AccountingService:
 
     def get_stats(self, stats_date: date):
         query = select(
-            func.coalesce(func.sum(AuditLogRecord.credit), 0).label("credit"),
-            func.coalesce(func.sum(AuditLogRecord.debit), 0).label("debit"),
+            # management earnings = total credit - total debit
+            (
+                func.coalesce(func.sum(AuditLogRecord.credit), 0)
+                - func.coalesce(func.sum(AuditLogRecord.debit), 0)
+            ).label("earnings"),
         ).filter(
             AuditLogRecord.reason != AuditLogRecordReason.payout,
             cast(AuditLogRecord.created_at, Date) == stats_date,

@@ -57,8 +57,7 @@ class RolesRequired:
 
 
 class StatsResponseData(BaseModel):
-    credit: Decimal
-    debit: Decimal
+    earnings: Decimal
 
     model_config = ConfigDict(from_attributes=True)
 
