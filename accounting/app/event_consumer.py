@@ -17,18 +17,19 @@ logger = logging.getLogger(__name__)
 
 def user_created_v1_handler(data: dict):
     with Session() as session:
-        accounting_service = AccountingService(session)
-        with session.begin():
-            session.execute(
-                insert(User)
-                .values(
-                    public_id=data["public_id"],
-                    email=data["email"],
-                    role=data["role"],
-                )
-                .on_conflict_do_nothing()
+        # TODO: transaction
+        session.execute(
+            insert(User)
+            .values(
+                public_id=data["public_id"],
+                email=data["email"],
+                role=data["role"],
             )
-            accounting_service.create_account(data["public_id"])
+            .on_conflict_do_nothing()
+        )
+        session.commit()
+        accounting_service = AccountingService(session)
+        accounting_service.create_account(data["public_id"])
     logger.debug("Created User %s", data["public_id"])
 
 
