@@ -1,275 +1,261 @@
 # Awesome Task Exchange System
 
-В результате анализа требований были выявлены следующие предметные области:
+After analyzing the requirements, the following domains have been identified:
 
-* Tasks - управление задачами;
-* Finance - учёт финансовых операций, расчёт финансовой аналитики;
-* Auth - управление пользователями, аутентификация.
+* Tasks - task management;
+* Finance - financial transaction management, financial analytics calculation;
+* Auth - user management, authentication.
 
-Каждая предметная область имеет набор тесно связанных операций и данных.
-Также у разных предметных областей разный приоритет для бизнеса:
+Each subject area has a set of closely related operations and data.
+Additionally, different subject areas have different business priorities:
 
-* Tasks - основная предметная область с наивысшим приоритетом для разработки;
-* Finance - поддержка основной предметной области;
-* Auth - неспециализированная область, можно использовать готовое решение
-  (например, Keycloak).
+* Tasks - the main subject area with the highest priority for development;
+* Finance - supporting the main subject area;
+* Auth - a non-specialized area, where a ready-made solution can be used (e.g., Keycloak).
 
-Ожидается, что Tasks будет использован командой разработки, а Finance -
-командой бухгалтеров. У данных команд разные бизнес-процессы и
-разный жизненный цикл. Было бы полезно иметь возможность вводить в эксплуатацию
-изменения разных бизнес-процессов независимо друг от друга.
+It is expected that Tasks will be used by the development team, and Finance will
+be used by the accounting team. These teams have different business processes
+and lifecycles. It would be useful to have the ability to deploy changes to
+different business processes independently of each other.
 
-Каждая предметная область должна быть представлена отдельным сервисом.
-Названия сервисов совпадают с названиями предметных областей.
+Each subject area should be represented by a separate service.
+The names of the services match the names of the subject areas.
 
-## Коммуникации
+## Communications
 
-### Синхронные
+### Synchronous
 
-Для получения одним сервисом данных из другого сервиса в момент обработки
-команд и событий сервисы-клиенты могут использовать REST API друг друга.
+To retrieve data from one service to another service during the processing of
+commands and events, client services can use each other's REST APIs.
 
-REST API сервисов доступно только обладателям machine-to-machine токенов,
-чтобы не допустить несанкционированного доступа к данным.
+REST APIs of the services are only available to holders of machine-to-machine
+tokens to prevent unauthorized access to the data.
 
-### Асинхронные
+### Asynchronous
 
-Для событий, которые могут представлять интерес для других сервисов и их
-предметных областей, сервисы должны публиковать сообщения с описанием событий.
+For events that may be of interest to other services and their subject areas,
+services should publish messages describing events.
 
-Для обмена сообщениями будет использован RabbitMQ:
-он предоставляет всё необходимое для реализации требуемой системы
-и я имею опыт работы с ним.
+RabbitMQ will be used for message exchange; it provides everything necessary to
+implement the required system, and I have experience working with it.
 
-У каждого типа событий должен быть отдельный ключ (`routing_key`).
-Ключи сообщений должны иметь следующий формат:
+Each type of event should have a separate key (`routing_key`). Message keys
+should have the following format:
 
 ```text
 <service_name>.<entity_name>.<event_name>
 ```
 
-* `<service_name>` - название сервиса, отправляющего сообщение;
-* `<entity_name>` - название сущности, с которой произошло событие;
-* `<event_name>` - название события.
-
-Сообщения должны публиковаться в общий topic exchange, на который
-личные очереди сервисов-потребителей будут подписаны для получения тех типов
-событий, которые им нужно обрабатывать.
-
-Данные внутри сообщений будут закодированы в формате JSON.
-
-## Сервисы
+## Services
 
 ### Tasks
 
-Сервис должен предоставлять весь функционал дашборда с задачами:
+The service should provide all the functionality of the task tracker dashboard:
 
-* отображение списка задач (в т.ч. назначенных на текущего пользователя);
-* создание задач;
-* отметка задач выполненными;
-* назначение исполнителей задач.
+* Displaying a list of tasks (including those assigned to the current user);
+* Creating tasks;
+* Marking tasks as completed;
+* Assigning task performers.
 
-Сервис должен хранить задачи с описанием и ссылкой на исполнителя.
+The service should store tasks with descriptions and links to the assignees.
 
-Также сервис должен поддерживать локальный кэш активных пользователей системы
-для ускорения выбора случайного исполнителя задачи и отображения данных о нём.
+Additionally, the service should support a local cache of active system users
+to speed up the selection of a random task performer and display their data.
 
-#### Исходящие сообщения
+#### Outgoing Messages
 
-`tasks.task.assigned` - для задачи был выбран новый исполнитель
-(в т.ч. для новой задачи).
-
-```jsonc
-{
-  "task_uuid": "uuid", // UUID задачи
-  "assigned_to": "uuid", // UUID исполнителя задачи
-  "timestamp": "ISO 8601 Datetime" // время назначения
-}
-```
-
-`tasks.task.completed` - задача отмечена как выполненная.
+`tasks.task.assigned` - a new performer has been selected for the task
+(including for a new task).
 
 ```jsonc
 {
-  "task_uuid": "uuid",
-  "assigned_to": "uuid", // UUID последнего исполнителя задачи
-  "timestamp": "ISO 8601 Datetime" // время выполнения
+  "task_uuid": "uuid", // Task UUID
+  "assigned_to": "uuid", // Performer's UUID
+  "timestamp": "ISO 8601 Datetime" // Assignment time
 }
 ```
 
-`tasks.task.changed` - описание задачи изменилось (в т.ч. для новой задачи).
+`tasks.task.completed` - the task has been marked as completed.
 
 ```jsonc
 {
   "task_uuid": "uuid",
-  "timestamp": "ISO 8601 Datetime" // время обновления
+  "assigned_to": "uuid", // UUID of the last task performer
+  "timestamp": "ISO 8601 Datetime" // Completion time
 }
 ```
 
-#### Входящие сообщения
+`tasks.task.changed` - the task description has changed (including for a new task).
 
-`auth.user.created`, `auth.user.changed` - добавление или обновление данных
-пользователя в базе сервиса.
-Если timestamp события меньше, чем timestamp последнего обновления
-пользователя в базе сервиса, событие игнорируется.
-Данные пользователя извлекаются через эндпоинт `GET /users/{uuid}`
-сервиса Auth.
-Если роль пользователя поменялась на роль не совместимую с выполнением задач
-(менеджер, администратор), задачи пользователя переназначаются на кого-то
-с подходящей для выполнения задач ролью.
+```jsonc
+{
+  "task_uuid": "uuid",
+  "timestamp": "ISO 8601 Datetime" // Update time
+}
+```
 
-`auth.user.deleted` - удаление пользователя из локального кэша.
-Задачи удалённого пользователя переназначаются на пользователей
-с подходящими ролями.
+#### Incoming Messages
 
-Для корректной обработки событий `auth.user.changed` и `auth.user.deleted`
-при отсутствии гарантий порядка обработки, пользователя из кэша нужно не
-реально удалять, а помечать удалённым с помощью флага (например, `is_deleted`).
-Тогда события `changed` после "удаления" можно будет игнорировать
-и не создавать записи для удалённых пользователей.
+`auth.user.created`, `auth.user.changed` - adding or updating user data in the
+service database. If the event timestamp is earlier than the timestamp of the
+user's last update in the service database, the event is ignored. User data is
+retrieved through the `GET /users/{uuid}` endpoint of the Auth service. If a
+user's role changes to a role incompatible with task execution (e.g., manager
+or administrator), the user's tasks are reassigned to someone with a suitable
+task-execution role.
+
+`auth.user.deleted` - removal of a user from the local cache.
+Tasks of the deleted user are reassigned to users with suitable roles.
+
+To properly handle `auth.user.changed` and `auth.user.deleted` events in the
+absence of processing order guarantees, users in the cache should not be
+physically deleted but marked as deleted using a flag (e.g., `is_deleted`).
+This way, `changed` events after "deletion" can be ignored, and no records need
+to be created for deleted users.
 
 #### REST API
 
-`GET /tasks/{uuid}` - получение данных о задаче.
+`GET /tasks/{uuid}` - obtaining task data.
 
 ### Finance
 
-Сервис отвечает за учёт финансовых операций:
+The service is responsible for financial operations:
 
-* назначение цен для задач;
-* запись лога финансовых операций;
-* выведение состояния счёта сотрудника;
-* ежедневная отправка писем с суммами выплат сотрудникам;
-* подсчёт заработков топ-менеджмента за день;
-* выведение аналитических данных по дням.
+* Setting prices for tasks;
+* Logging financial transactions;
+* Displaying an employee's account balance;
+* Sending daily emails with payout sums to employees;
+* Calculating earnings for top management per day;
+* Providing analytical data by days.
 
-Сервис должен хранить историю зачислений средств за выполнение и списываний
-за переназначение задач для каждого сотрудника.
-В конце каждого рабочего дня для сотрудников с положительным балансом
-создаётся запись о выплате и, соответственно, обнулении баланса.
+The service should store the history of funds deposited for task completion and
+deductions for task reassignment for each employee. At the end of each working
+day, a record of payment and, accordingly, balance reset is created for
+employees with a positive balance.
 
-На основе истории зачислении средств на счёт исполнителей может быть построен
-дашборд с аналитикой. Чтобы минимизировать нагрузку аналитических запросов,
-их результаты можно кэшировать. Кэш нужно инвалидировать или, когда это просто,
-как в случае с суммой заработков, обновлять при создании новых записей.
-Также кэш можно инвалидировать по времени.
+Based on the history of funds deposited into the performers' accounts, an
+analytics dashboard can be built. To minimize the load of analytical queries,
+their results can be cached. The cache needs to be invalidated or updated when
+necessary, as in the case of earnings sum, which should be updated when creating
+new records. The cache can also be invalidated based on time.
 
-Также сервис должен иметь локальный кэш с теми данными о задачах, которые должны
-отображаться в аудит логах.
+Additionally, the service should have a local cache with the task data that
+should be displayed in audit logs.
 
-Чтобы отправлять ежедневные письма о заработках всем пользователям,
-сервис должен иметь локальный кэш пользователей системы.
+To send daily emails about earnings to all users, the service should have a
+local cache of system users.
 
-#### Входящие сообщения
+#### Incoming Messages
 
-Обработка событий `auth.user.created`, `auth.user.changed`, `auth.user.deleted`
-такая же как в сервисе Tasks.
+Processing of `auth.user.created`, `auth.user.changed`, `auth.user.deleted`
+events is the same as in the Tasks service.
 
-При обработке событий `tasks.task.assigned`, `tasks.task.completed`,
-`tasks.task.changed` для задачи, которая ещё не известна сервису,
-создаётся запись со случайно сгенерированными ценами назначения и выполнения,
-задача сохраняется в локальный кэш с данными с эндпоинта сервиса Tasks
+When processing `tasks.task.assigned`, `tasks.task.completed`,
+`tasks.task.changed` events for a task that is not yet known to the service, a
+record is created with randomly generated assignment and completion prices, and
+the task is saved in the local cache with data from the Tasks service endpoint
 `GET /tasks/{uuid}`.
 
-`tasks.task.assigned` - создание записи о снятии средств со счёта исполнителя.
-Время записи берётся из поля `timestamp` обрабатываемого сообщения
-для сохранения порядка операций.
+`tasks.task.assigned` - creating a record of funds withdrawal from the
+performer's account. The recording time is taken from the `timestamp` field of
+the processed message to preserve the order of operations.
 
-`tasks.task.completed` - создание записи о зачислении средств на счёт
-исполнителя.
-Время записи берётся из поля `timestamp` обрабатываемого сообщения
-для сохранения порядка операций.
+`tasks.task.completed` - creating a record of funds deposit into the
+performer's account. The recording time is taken from the `timestamp` field of
+the processed message to preserve the order of operations.
 
-`tasks.task.changed` - обновление данных о задаче в локальном кэше.
-Если timestamp события меньше, чем timestamp последнего обновления
-пользователя в базе сервиса, событие игнорируется.
+`tasks.task.changed` - updating task data in the local cache.
+If the event timestamp is earlier than the timestamp of the user's last update
+in the service's database, the event is ignored.
 
 ### Auth
 
-Сервис должен хранить данные для аутентификации пользователей (логин, пароль),
-их роль в системе (администратор, менеджер, бухгалтер, сотрудник, и т.д.).
+The service should store user authentication data (username, password) and their
+role in the system (administrator, manager, accountant, employee, etc.).
 
-Сервис должен поддерживать OAuth2 или OpenID Connect для аутентификации
-пользователей в других сервисах системы.
+The service should support OAuth2 or OpenID Connect for user authentication in
+other services of the system.
 
-Также сервис может отвечать за регистрацию и выдачу machine-to-machine токенов
-для авторизации коммуникаций между сервисами по REST API.
+Additionally, the service can handle user registration and issue
+machine-to-machine tokens for authorization of communications between services
+via REST API.
 
-#### Исходящие сообщения
+#### Outgoing Messages
 
-Для всех исходящих событий будет использован следующий формат сообщений:
+The following message format will be used for all outgoing events:
 
 ```jsonc
 {
-  "user_id": "uuid", // UUID пользователя
-  "timestamp": "ISO 8601 Datetime" // время события
+  "user_id": "uuid", // User UUID
+  "timestamp": "ISO 8601 Datetime" // Event time
 }
 ```
 
-`auth.user.created` - пользователь добавлен в систему.
+`auth.user.created` - user added to the system.
 
-`auth.user.changed` - данные пользователя поменялись.
+`auth.user.changed` - user data has changed.
 
-`auth.user.deleted` - пользователь удалён из системы.
+`auth.user.deleted` - user has been removed from the system.
 
 #### REST API
 
-`GET /users/{uuid}` - получение данных о пользователе (почта, роль, и т.д.).
+`GET /users/{uuid}` - obtaining user data (email, role, etc.).
 
-## Обработка проблем
+## Problem Handling
 
-Без подключения к базе данных не сможет работать ни один из сервисов.
-Но т.к. у каждого сервиса будет отдельная база данных, проблемы с базой данных
-одного сервиса не повлияют на работоспособность другого.
+Without a connection to the database, none of the services will be able to function.
+However, since each service will have its own database, issues with the database
+of one service will not affect the operability of another.
 
-Отсутствие подключения к брокеру сообщений не позволит работать сервису Tasks,
-т.к. он не сможет корректно обрабатывать изменения состояния задач, о которых
-должны быть оповещены другие сервисы. Той же проблеме подвержен и Auth.
-Чтобы восстановить работоспособность сервиса без подключения к брокеру,
-можно перенаправить сохранение его сообщений в локальную базу данных,
-из которой они будут перенаправлены в брокер после устранения неполадок.
+Lack of connection to the message broker will prevent the Tasks service from
+working properly because it won't be able to correctly handle changes in task
+status that other services need to be notified about. The Auth service is also
+susceptible to the same problem. To restore the functionality of a service
+without a connection to the broker, you can redirect the storage of its messages
+to a local database, from which they will be forwarded to the broker once the
+issues are resolved.
 
-Проблемы с подключением между сервисами не позволят сервисам синхронизировать
-локальные кэши с другими сервисами. Но если сообщения из RabbitMQ о необходимости
-обновления данных не будут удалены, после восстановления подключения
-синхронизация выполнится.
+Issues with inter-service connectivity will prevent services from synchronizing
+their local caches with other services. However, if messages from RabbitMQ about
+the need to update data are not deleted, synchronization will occur after the
+connection is restored.
 
-Чтобы избежать DoS-атак одних сервисов другими при большом количестве
-накопленных обновлений (например, после неполадок с сетью), сервисы должны
-ограничивать количество одновременных запросов к другим сервисам.
-Сервисы должны корректно обрабатывать ответы с ошибками: не повторять
-запросы после ответа с кодами состояния 400-499,
-повторять запросы после ответа с кодом 503 только после паузы, и т.д.
+To prevent DoS attacks from one service to another when there is a large
+accumulation of updates (for example, after network issues), services should
+limit the number of simultaneous requests to other services. Services should
+handle error responses correctly: they should not retry requests after receiving
+responses with status codes 400-499, and they should retry requests after
+receiving a 503 status code only after a pause, etc.
 
-Проблемы с подключением не позволят пользователям пройти логин, т.к.
-для него необходим обмен OAuth2 токенами между Auth и другими сервисами.
-Пользователи, которые прошли логин до неполадок, продолжат пользоваться
-доступными сервисами.
+Connection problems will prevent users from successfully logging in because it
+requires an exchange of OAuth2 tokens between Auth and other services. Users who
+have successfully logged in before the issues occurred will continue to use the
+available services.
 
-Для выполнения остальных функций сервисов подключение не требуется.
-Но отображаемые данные без синхронизации устареют.
+For the rest of the service functions, a connection is not required. However,
+displayed data will become outdated without synchronization.
 
-## Спорные места
+## Controversial Points
 
-Основным спорным местом данного проекта является необходимость дублирования
-данных между сервисами: users из Auth в Tasks и Finance, tasks из Tasks в
-Finance. Этого можно избежать с помощью запросов на API сервисов.
-Считаю, что дублирование данных и постепенная синхронизация позволят сделать
-нагрузку на систему более равномерной в сравнении с использованием запросов
-при каждой необходимости получения данных из другого сервиса.
+The main controversial aspect of this project is the need for data duplication
+between services: users from Auth to Tasks and Finance, and tasks from Tasks to
+Finance. This could be avoided by using API requests to services. I believe that
+data duplication and gradual synchronization will make the system load more
+evenly distributed compared to making requests whenever data is needed from
+another service.
 
-Также замена RabbitMQ на другой брокер могла бы упростить систему, если бы
-брокер мог взять на себя гарантии о порядке выполнения задач.
-Тогда не было бы необходимости в проверках timestamp для разных событий.
+Replacing RabbitMQ with another message broker could simplify the system if the
+broker could provide guarantees about task execution order. Then, there would be
+no need for timestamp checks for different events.
 
-Возможно, ручной синхронизации данных можно было бы избежать с помощью репликации
-баз данных. Но это завязало бы один сервис на схему базы другого сервиса
-(деталь его реализации) вместо публичного интерфейса.
+It might be possible to avoid manual data synchronization through database
+replication. However, this would tie one service to the schema of another
+service (the details of its implementation) instead of using a public interface.
 
-Расчёт аналитики в сервисе Finance может негативно повлиять на скорость
-выполнения других операций. Этого можно было бы избежать, вынеся аналитику
-в отдельный сервис. Но это могло бы привести к дополнительному дублированию
-данных и логики: подсчёт суммарных заработков топ-менеджмента нужен и на
-аккаунтинг-дашборде для бухгалтеров, и на дашборде с аналитикой.
-Частично решить проблему с нагрузкой может кэш или отдельная реплика базы
-для выполнения аналитических запросов.
+Calculating analytics in the Finance service could negatively impact the speed
+of other operations. This could be avoided by moving analytics to a separate
+service. However, this might lead to additional data and logic duplication:
+calculating total earnings for top management is needed both on the accounting
+dashboard for accountants and on the analytics dashboard. To partially address
+the load issue, caching or a separate database replica for analytical queries
+could be considered.
