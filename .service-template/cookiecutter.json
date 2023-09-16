@@ -2,6 +2,7 @@
   "project_name": "Web Service",
   "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
   "need_web_service": true,
+  "need_db": true,
   "need_kafka": true,
-  "need_rabbitmq": true
+  "need_rabbitmq": false
 }
