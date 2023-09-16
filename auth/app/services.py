@@ -5,13 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from .db import Session
-from .event_producer import (
-    NewUserAdded,
-    UserCreated,
-    UserDeleted,
-    UserUpdated,
-    send_events,
-)
+from .event_producer import UserCreatedV1, UserDeletedV1, UserUpdatedV1, send_events
 from .models import User
 from .security import get_password_hash, verify_password
 
@@ -28,6 +22,7 @@ class UserPasswordVerificationFailed(Exception):
     """Raised on User password verification failure."""
 
 
+# TODO: rework to guarantee that kafka message is dispatched for each DB write
 class UserService:
     def __init__(self, session: Session):
         self.session = session
@@ -88,7 +83,7 @@ class UserService:
 
             self.session.refresh(user)
 
-            send_events([UserCreated.from_user(user), NewUserAdded.from_user(user)])
+            send_events([UserCreatedV1.from_user(user)])
 
         return user
 
@@ -118,7 +113,7 @@ class UserService:
 
             self.session.refresh(user)
 
-            send_events([UserUpdated.from_user(user)])
+            send_events([UserUpdatedV1.from_user(user)])
 
         return user
 
@@ -138,4 +133,4 @@ class UserService:
 
             self.session.refresh(user)
 
-            send_events([UserDeleted.from_user(user)])
+            send_events([UserDeletedV1.from_user(user)])

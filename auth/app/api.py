@@ -3,7 +3,7 @@ from typing import Annotated, List
 from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, ConfigDict, EmailStr, constr
+from pydantic import UUID4, BaseModel, ConfigDict, EmailStr, constr
 
 from .db import Session
 from .models import UserRole
@@ -97,6 +97,7 @@ def token(
 
 class UserDataResponse(BaseModel):
     id: int
+    public_id: UUID4
     email: str
     role: UserRole
 
@@ -157,7 +158,7 @@ def create_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.create_user(
+        return user_service.create_user(
             email=payload.email,
             role=payload.role,
             password=payload.password,
@@ -168,13 +169,12 @@ def create_user(
             detail="Email is already used",
         )
 
-    return user
-
 
 class UpdateUserRequest(BaseModel):
     email: EmailStr
 
 
+# TODO: consider using public_id in routes
 @app.patch(
     "/users/{id_}",
     dependencies=[Depends(RolesRequired("manager"))],
@@ -194,7 +194,7 @@ def update_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.update_user(id_=id_, new_email=payload.email)
+        return user_service.update_user(id_=id_, new_email=payload.email)
     except UserNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -206,9 +206,8 @@ def update_user(
             detail="Email is already used",
         )
 
-    return user
 
-
+# TODO: consider using public_id in routes
 @app.delete(
     "/users/{id_}",
     dependencies=[Depends(RolesRequired("manager"))],
@@ -225,11 +224,9 @@ def delete_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
     try:
-        user = user_service.delete_user(id_)
+        user_service.delete_user(id_)
     except UserNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Not found",
         )
-
-    return user

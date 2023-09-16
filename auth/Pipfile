@@ -18,6 +18,7 @@ pydantic = {version = "~=2.1.1", extras = ["email"]}
 passlib = {version = "~=1.7.4", extras = ["bcrypt"]}
 python-jose = {version = "~=3.3.0", extras = ["cryptography"]}
 kafka-python = "~=2.0.2"
+event-schema-registry = {editable = true, path = "./../event_schema_registry/python"}
 
 [dev-packages]
 black = "~=23.7.0"

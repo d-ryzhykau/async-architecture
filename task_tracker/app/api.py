@@ -2,11 +2,12 @@ from typing import Annotated, List, Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import UUID4, BaseModel, ConfigDict, field_validator
 
 from .db import Session
 from .security import decode_access_token
 from .services import (
+    NoWorkerUsers,
     TaskAlreadyCompleted,
     TaskNotAssignedToUser,
     TaskNotFound,
@@ -60,8 +61,11 @@ class RolesRequired:
 
 class TaskDataResponse(BaseModel):
     id: int
+    public_id: UUID4
     is_completed: bool
     description: str
+    jira_id: Optional[str]
+    assigned_to_public_id: UUID4
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -95,7 +99,13 @@ def create_task(
     payload: CreateTaskRequest,
     task_service: Annotated[TaskService, Depends(get_task_service)],
 ):
-    return task_service.create_task(payload.description)
+    try:
+        return task_service.create_task(payload.description)
+    except NoWorkerUsers:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No worker Users",
+        )
 
 
 # TODO: add support for description update with sync to other services
@@ -110,6 +120,7 @@ class UpdateTaskRequest(BaseModel):
         return v
 
 
+# TODO: consider using public_id in routes
 @app.patch(
     "/tasks/{task_id}",
     response_model=TaskDataResponse,
@@ -132,7 +143,7 @@ def update_task(
     task_service: Annotated[TaskService, Depends(get_task_service)],
 ):
     try:
-        task = task_service.complete_task(
+        return task_service.complete_task(
             user_public_id=token_data["sub"],
             task_id=task_id,
         )
@@ -151,7 +162,6 @@ def update_task(
             status_code=status.HTTP_409_CONFLICT,
             detail="Task has already been completed",
         )
-    return task
 
 
 @app.post(
@@ -162,4 +172,10 @@ def update_task(
 def reassign_tasks(
     task_service: Annotated[TaskService, Depends(get_task_service)],
 ):
-    return task_service.reassign_open_tasks()
+    try:
+        return task_service.reassign_open_tasks()
+    except NoWorkerUsers:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No worker Users",
+        )

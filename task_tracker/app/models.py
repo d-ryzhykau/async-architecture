@@ -18,6 +18,7 @@ class User(Base):
     public_id = mapped_column(UUID, primary_key=True)
     email = mapped_column(String(256), nullable=False, unique=True)
     role = mapped_column(String, index=True, nullable=False)
+    is_deleted = mapped_column(Boolean, nullable=False, default=False)
 
     assigned_tasks: Mapped[List["Task"]] = relationship(back_populates="assigned_to")
 
@@ -30,6 +31,7 @@ class Task(Base):
     public_id = mapped_column(UUID, unique=True, default=uuid4)
     is_completed = mapped_column(Boolean, nullable=False, default=False)
     description = mapped_column(Text, nullable=False)
+    jira_id = mapped_column(String, nullable=True)
 
     assignment_price = mapped_column(
         Numeric(4, 2),
