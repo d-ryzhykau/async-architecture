@@ -92,6 +92,7 @@ class Migration(migrations.Migration):
                             ("admin", "Admin"),
                         ],
                         max_length=16,
+                        default="worker",
                     ),
                 ),
                 (
