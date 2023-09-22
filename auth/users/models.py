@@ -39,13 +39,13 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["role"]
 
+    objects = UserManager()
+
     class Role(models.TextChoices):
         WORKER = "worker", _("Worker")
         MANAGER = "manager", _("Manager")
         ACCOUNTANT = "accountant", _("Accountant")
         ADMIN = "admin", _("Admin")
-
-    objects = UserManager()
 
     public_id = models.UUIDField(unique=True, default=uuid.uuid4)
 
