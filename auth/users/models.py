@@ -12,9 +12,13 @@ class UserManager(BaseUserManager):
     def _create_user(self, email, role, password, **extra_fields):
         if not email:
             raise ValueError("email cannot be empty")
-        email = self.normalize_email(email)
-        user = self.model(email=email, role=role, **extra_fields)
+        user = self.model(
+            email=self.normalize_email(email.lower()),
+            role=role,
+            **extra_fields,
+        )
         user.set_password(password)
+        user.full_clean()
         user.save(using=self._db)
         return user
 
