@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.text import capfirst
 
 from users.models import User
-from users.services import user_create_superuser
+from users.services import user_create
 
 PASSWORD_FIELD = "password"
 
@@ -89,5 +89,5 @@ class Command(BaseCommand):
             else:
                 user_data[PASSWORD_FIELD] = password
 
-        user_create_superuser(**user_data)
+        user_create(**user_data)
         self.stdout.write("Superuser created successfully.")
