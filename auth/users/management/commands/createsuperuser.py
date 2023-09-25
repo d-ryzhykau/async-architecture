@@ -3,7 +3,6 @@ import getpass
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.text import capfirst
 
 from users.models import User
 from users.services import user_create
@@ -17,59 +16,31 @@ class Command(BaseCommand):
             f"--{User.USERNAME_FIELD}",
             help="Specifies login for the superuser.",
         )
-        for field_name in User.REQUIRED_FIELDS:
-            parser.add_argument(
-                f"--{field_name}",
-                help=f"Specifies {field_name} for the superuser.",
-            )
-
-    def _get_input_message(self, field):
-        message = capfirst(field.verbose_name)
-        if field.default:
-            message += f" (leave blank to use '{field.default}')"
-        message += ": "
-        return message
-
-    def _get_input_data(self, field, message):
-        raw_value = input(message)
-        if raw_value == "" and field.default:
-            return field.default
-
-        try:
-            return field.clean(raw_value, None)
-        except ValidationError as exc:
-            self.stderr.write(f"Error: {'; '.join(exc.messages)}")
-            return None
 
     def handle(self, *args, **options):
-        # validate values of command line options to fail early
-        required_fields = [User.USERNAME_FIELD] + User.REQUIRED_FIELDS
         user_data = {}
+        username_field = User._meta.get_field(User.USERNAME_FIELD)
 
-        invalid_options_fields = []
-        for field_name in required_fields:
-            if options.get(field_name) is None:
-                continue
-
-            field = User._meta.get_field(field_name)
+        # validate values of command line options to fail early
+        if options.get(User.USERNAME_FIELD) is not None:
             try:
-                user_data[field_name] = field.clean(options[field_name], None)
-            except ValidationError:
-                invalid_options_fields.append(field_name)
-
-        if invalid_options_fields:
-            self.stderr.write("Invalid values of command line arguments:")
-            for field_name in invalid_options_fields:
-                self.stderr.write(
-                    self.style.ERROR(f"--{field_name}: {options[field_name]!r}")
+                user_data[User.USERNAME_FIELD] = username_field.clean(
+                    options[User.USERNAME_FIELD], None
                 )
-            raise CommandError("Invalid values of command line arguments.")
+            except ValidationError:
+                self.stderr.write(
+                    self.style.ERROR(
+                        f"--{User.USERNAME_FIELD}: {options[User.USERNAME_FIELD]!r}"
+                    )
+                )
+                raise CommandError("Invalid value of command line argument.")
 
-        for field_name in required_fields:
-            field = User._meta.get_field(field_name)
-            message = self._get_input_message(field)
-            while user_data.get(field_name) is None:
-                user_data[field_name] = self._get_input_data(field, message)
+        while user_data.get(User.USERNAME_FIELD) is None:
+            raw_value = input("Login: ")
+            try:
+                user_data[User.USERNAME_FIELD] = username_field.clean(raw_value, None)
+            except ValidationError as exc:
+                self.stderr.write(f"Error: {'; '.join(exc.messages)}")
 
         while user_data.get(PASSWORD_FIELD) is None:
             password = getpass.getpass()
@@ -86,8 +57,9 @@ class Command(BaseCommand):
                 validate_password(password, User(**user_data))
             except ValidationError as exc:
                 self.stderr.write("\n".join(exc.messages))
-            else:
-                user_data[PASSWORD_FIELD] = password
+                continue
 
-        user_create(**user_data)
+            user_data[PASSWORD_FIELD] = password
+
+        user_create(role=User.Role.ADMIN, **user_data)
         self.stdout.write("Superuser created successfully.")
