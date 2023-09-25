@@ -1,7 +1,10 @@
 import uuid
 
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -21,7 +24,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-class User(AbstractUser):
+class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["role"]
 
@@ -35,10 +38,19 @@ class User(AbstractUser):
 
     public_id = models.UUIDField(unique=True, default=uuid.uuid4)
 
-    username = None  # stub inherited username field
     email = models.EmailField(_("email address"), unique=True)
-
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.WORKER)
+    is_deleted = models.BooleanField(default=False)
+
+    # allow access to admin site
+    @property
+    def is_staff(self) -> bool:
+        return self.role == self.Role.ADMIN
+
+    # forbid authentication for deleted users
+    @property
+    def is_active(self) -> bool:
+        return self.is_deleted
 
     class Meta:
         db_table = "user"
