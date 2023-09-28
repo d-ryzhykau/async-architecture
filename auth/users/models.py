@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, role, password, **extra_fields):
+    def create_user(self, email, password, role, **extra_fields):
         if not email:
             raise ValueError("email cannot be empty")
         user = self.model(
@@ -23,10 +23,17 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def create_superuser(self, email, password, **extra_fields):
+        return self.create_user(
+            email=email,
+            password=password,
+            role=User.Role.ADMIN,
+            is_superuser=True,
+        )
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["role"]
 
     objects = UserManager()
 
@@ -42,15 +49,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.WORKER)
     is_deleted = models.BooleanField(default=False)
 
-    # allow access to admin site
+    # for django.contrib.auth compatibility
+    @property
+    def is_active(self) -> bool:
+        return not self.is_deleted
+
+    # for django.contrib.admin compatibility
     @property
     def is_staff(self) -> bool:
         return self.role == self.Role.ADMIN
-
-    # forbid authentication for deleted users
-    @property
-    def is_active(self) -> bool:
-        return self.is_deleted
 
     class Meta:
         db_table = "user"
