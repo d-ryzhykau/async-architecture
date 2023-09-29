@@ -10,6 +10,9 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
+    def get_by_natural_key(self, username):
+        return self.get(**{self.model.USERNAME_FIELD: username, "is_deleted": False})
+
     def create_user(self, email, password, role, **extra_fields):
         if not email:
             raise ValueError("email cannot be empty")
@@ -45,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     public_id = models.UUIDField(unique=True, default=uuid.uuid4)
 
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(_("email address"))
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.WORKER)
     is_deleted = models.BooleanField(default=False)
 
@@ -61,3 +64,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = "user"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["email"],
+                condition=models.Q(is_deleted=False),
+                name="user_email_is_deleted_false_key",
+            ),
+        ]

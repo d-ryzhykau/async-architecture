@@ -129,3 +129,8 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+SILENCED_SYSTEM_CHECKS = [
+    "auth.E003",  # can be ignored because User.email is unique for all active Users
+]
