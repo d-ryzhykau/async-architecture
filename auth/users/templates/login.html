@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="columns is-mobile is-centered">
+    <div class="column is-half-desktop is-full-mobile">
+        {% if form.errors %}
+        <div class="notification is-danger">
+            Your email and password didn't match. Please try again.
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}" class="box">
+        {% csrf_token %}
+
+        <div class="field">
+            {{ form.username.label_tag }}
+            <div class="control">
+                <input
+                    type="email"
+                    class="input"
+                    required
+                    name="{{ form.username.html_name }}"
+                    value="{{ form.username.value|default:'' }}" />
+            </div>
+        </div>
+
+        <div class="field">
+            {{ form.password.label_tag }}
+            <div class="control">
+                <input
+                    type="password"
+                    class="input"
+                    required
+                    name="{{ form.password.html_name }}"
+                    value="{{ form.password.value|default:'' }}" />
+            </div>
+        </div>
+
+        <input type="submit" value="Login">
+        <input type="hidden" name="next" value="{{ next }}">
+        </form>
+    </div>
+</div>
+{% endblock %}

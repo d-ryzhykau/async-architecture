@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome to Auth Service!</h1>
+<p>You are currently logged in as {{ user.get_username }}.</p>
+
+{% if user.is_staff %}
+<p>You have permission to access <a href="{% url 'admin:index' %}">Site administration</a>.</p>
+{% endif %}
+
+{% endblock %}
