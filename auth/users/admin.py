@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
@@ -27,6 +28,12 @@ class UserCreationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["email", "role", "is_deleted"]
+
+    def clean_email(self):
+        email = User.objects.normalize_email(self.cleaned_data["email"])
+        if email and User.objects.filter(email=email, is_deleted=False).exists():
+            raise ValidationError(_("This email is already used."))
+        return email
 
     def clean_password2(self):
         password2 = self.cleaned_data["password2"]
