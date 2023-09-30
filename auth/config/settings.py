@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # local
+    "outbox.apps.OutboxConfig",
     "users.apps.UsersConfig",
     # default
     "django.contrib.admin",
