@@ -89,13 +89,13 @@ class UserAdmin(BaseUserAdmin):
         (_("Important dates"), {"fields": ("last_login",)}),
     )
 
-    readonly_fields = ["public_id", "is_deleted"]
-
     list_display = ["email", "role", "is_deleted"]
     list_filter = ["role", "is_deleted"]
     search_fields = ["email"]
     ordering = ["pk"]
     actions = None
+
+    readonly_fields = ["public_id", "is_deleted"]
 
     def get_readonly_fields(self, request, obj):
         readonly_fields = super().get_readonly_fields(request, obj)
@@ -107,13 +107,13 @@ class UserAdmin(BaseUserAdmin):
         super().save_form(request, form, change)
 
         if change:
-            form: UserCreationForm
+            form: UserChangeForm
             return User.objects.update_user(
                 user=form.instance,
                 email=form.cleaned_data["email"],
             )
         else:
-            form: UserChangeForm
+            form: UserCreationForm
             return User.objects.create_user(
                 email=form.cleaned_data["email"],
                 role=form.cleaned_data["role"],
