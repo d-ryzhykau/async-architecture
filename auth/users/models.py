@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -45,6 +46,17 @@ class UserManager(BaseUserManager):
             role=User.Role.ADMIN,
             is_superuser=True,
         )
+
+    def update_user(self, user: "User", email: Optional[str] = None) -> "User":
+        if email:
+            user.email = email
+            user.save(update_fields=["email"])
+        return user
+
+    def delete_user(self, user: "User"):
+        if not user.is_deleted:
+            user.is_deleted = True
+            user.save(update_fields=["is_deleted"])
 
 
 class User(AbstractBaseUser, PermissionsMixin):
