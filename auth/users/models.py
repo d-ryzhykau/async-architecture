@@ -16,6 +16,11 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password, role, **extra_fields):
         if not email:
             raise ValueError("email cannot be empty")
+        if not role:
+            raise ValueError("role cannot be empty")
+        if not password:
+            raise ValueError("password cannot be empty")
+
         user = self.model(
             email=self.normalize_email(email.lower()),
             role=role,
