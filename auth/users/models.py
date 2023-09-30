@@ -11,9 +11,18 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
+    @classmethod
+    def normalize_email(self, email):
+        return super().normalize_email(email).lower()
+
     # used by django.contrib.auth.backends.ModelBackend
-    def get_by_natural_key(self, username) -> "User":
-        return self.get(**{self.model.USERNAME_FIELD: username, "is_deleted": False})
+    def get_by_natural_key(self, email) -> "User":
+        return self.get(
+            **{
+                self.model.USERNAME_FIELD: self.normalize_email(email),
+                "is_deleted": False,
+            }
+        )
 
     def create_user(
         self,
@@ -30,7 +39,7 @@ class UserManager(BaseUserManager):
             raise ValueError("password cannot be empty")
 
         user = self.model(
-            email=self.normalize_email(email.lower()),
+            email=self.normalize_email(email),
             role=role,
             **extra_fields,
         )
