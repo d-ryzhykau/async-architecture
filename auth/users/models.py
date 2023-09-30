@@ -10,10 +10,17 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
-    def get_by_natural_key(self, username):
+    # used by django.contrib.auth.backends.ModelBackend
+    def get_by_natural_key(self, username) -> "User":
         return self.get(**{self.model.USERNAME_FIELD: username, "is_deleted": False})
 
-    def create_user(self, email, password, role, **extra_fields):
+    def create_user(
+        self,
+        email: str,
+        role: str,
+        password: str,
+        **extra_fields,
+    ) -> "User":
         if not email:
             raise ValueError("email cannot be empty")
         if not role:
@@ -31,7 +38,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email: str, password: str, **extra_fields) -> "User":
         return self.create_user(
             email=email,
             password=password,
