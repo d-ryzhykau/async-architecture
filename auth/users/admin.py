@@ -9,6 +9,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from users.models import User
+from users.services import user_create, user_delete, user_update
 
 
 class UserCreationForm(forms.ModelForm):
@@ -113,15 +114,15 @@ class UserAdmin(BaseUserAdmin):
     def save_form(self, request, form, change):
         super().save_form(request, form, change)
 
-        if change:
+        if change and form.has_changed():
             form: UserChangeForm
-            return User.objects.update_user(
+            return user_update(
                 user=form.instance,
                 email=form.cleaned_data["email"],
             )
         else:
             form: UserCreationForm
-            return User.objects.create_user(
+            return user_create(
                 email=form.cleaned_data["email"],
                 role=form.cleaned_data["role"],
                 password=form.cleaned_data["password2"],
@@ -132,4 +133,4 @@ class UserAdmin(BaseUserAdmin):
         pass
 
     def delete_model(self, request, obj):
-        User.objects.delete_user(obj)
+        user_delete(obj)
