@@ -46,7 +46,7 @@ class Command(BaseCommand):
             with transaction.atomic():
                 events = list(
                     Event.objects
-                    .filter(sent_at__isnull=True)
+                    .unsent()
                     .select_for_update(skip_locked=True)
                     [:batch_size]
                 )
