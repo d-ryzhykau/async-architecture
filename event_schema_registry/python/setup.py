@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="event_schema_registry",
-    version="0.1.0",
+    version="0.2.0",
     python_requires=">=3.11",
     install_requires=[
         "jsonschema>=4.19.0,<5.0.0",

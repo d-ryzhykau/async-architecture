@@ -15,11 +15,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "public_id",
-        "email",
-        "role"
-      ]
+      "required": ["public_id"]
     }
   },
 
