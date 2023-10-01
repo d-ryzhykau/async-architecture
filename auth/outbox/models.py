@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.utils import timezone
 
 
 class Event(models.Model):
@@ -14,3 +15,16 @@ class Event(models.Model):
 
     class Meta:
         db_table = "event"
+
+    def mark_sent(self):
+        """Sets `self.sent_at` to current time."""
+        if self.sent_at is not None:
+            self.sent_at = timezone.now()
+
+    @property
+    def payload(self):
+        return {
+            "event_name": self.name,
+            "event_version": self.version,
+            "data": self.data,
+        }

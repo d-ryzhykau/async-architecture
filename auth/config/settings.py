@@ -135,6 +135,9 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+KAFKA_ADDRESS = env("KAFKA_ADDRESS")
+
+
 SILENCED_SYSTEM_CHECKS = [
     "auth.E003",  # can be ignored because User.email is unique for all active Users
 ]
