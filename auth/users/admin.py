@@ -28,7 +28,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["email", "role", "is_deleted"]
+        fields = ["email", "role", "is_superuser"]
 
     def clean_email(self):
         email = User.objects.normalize_email(self.cleaned_data["email"])
@@ -81,7 +81,7 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ["wide"],
-                "fields": ["email", "role", "password1", "password2"],
+                "fields": ["email", "role", "is_superuser", "password1", "password2"],
             },
         ),
     )
@@ -92,7 +92,15 @@ class UserAdmin(BaseUserAdmin):
         (None, {"fields": ["email", "password", "public_id"]}),
         (
             _("Permissions"),
-            {"fields": ["role", "is_deleted", "groups", "user_permissions"]},
+            {
+                "fields": [
+                    "role",
+                    "is_superuser",
+                    "is_deleted",
+                    "groups",
+                    "user_permissions"
+                ],
+            },
         ),
         (_("Important dates"), {"fields": ("last_login",)}),
     )
@@ -106,9 +114,11 @@ class UserAdmin(BaseUserAdmin):
     readonly_fields = ["public_id", "is_deleted"]
 
     def get_readonly_fields(self, request, obj):
-        readonly_fields = super().get_readonly_fields(request, obj)
+        readonly_fields = list(super().get_readonly_fields(request, obj))
         if obj is not None:
-            readonly_fields = list(readonly_fields) + ["role"]
+            readonly_fields.append("role")
+        if not request.is_superuser:
+            readonly_fields.append("is_superuser")
         return readonly_fields
 
     def save_form(self, request, form, change):
@@ -116,16 +126,15 @@ class UserAdmin(BaseUserAdmin):
 
         if change and form.has_changed():
             form: UserChangeForm
-            return user_update(
-                user=form.instance,
-                email=form.cleaned_data["email"],
-            )
+            changed_data = [form.cleaned_data[field] for field in form.changed_data]
+            return user_update(user=form.instance, **changed_data)
         else:
             form: UserCreationForm
             return user_create(
                 email=form.cleaned_data["email"],
                 role=form.cleaned_data["role"],
                 password=form.cleaned_data["password2"],
+                is_superuser=form.cleaned_data["is_superuser"],
             )
 
     def save_model(self, *args, **kwargs):
