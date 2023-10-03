@@ -61,5 +61,8 @@ class Command(BaseCommand):
 
             user_data[PASSWORD_FIELD] = password
 
-        user_create(role=User.Role.ADMIN, **user_data)
+        user_data["role"] = User.Role.ADMIN
+        user_data["is_superuser"] = True
+
+        user_create(**user_data)
         self.stdout.write("Superuser created successfully.")
