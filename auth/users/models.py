@@ -6,6 +6,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -104,3 +105,9 @@ class User(AbstractBaseUser, PermissionsMixin):
                 name="user_email_is_deleted_false_key",
             ),
         ]
+
+    def clean(self):
+        if self.is_superuser and self.role != self.Role.ADMIN:
+            raise ValidationError(
+                {"is_superuser": _("Only admin can be a superuser.")}
+            )
