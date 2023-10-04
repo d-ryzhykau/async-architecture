@@ -117,7 +117,7 @@ class UserAdmin(BaseUserAdmin):
         readonly_fields = list(super().get_readonly_fields(request, obj))
         if obj is not None:
             readonly_fields.append("role")
-        if not request.is_superuser:
+        if not request.user.is_superuser:
             readonly_fields.append("is_superuser")
         return readonly_fields
 
