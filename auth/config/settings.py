@@ -116,6 +116,7 @@ LOGIN_REDIRECT_URL = "index"
 
 OAUTH2_PROVIDER = {
     "OAUTH2_VALIDATOR_CLASS": "users.oauth2.OAuth2Validator",
+    "APPLICATION_ADMIN_CLASS": "users.oauth2.ApplicationAdmin",
     "OIDC_ENABLED": True,
     "SCOPES": {"openid": "OpenID Connect scope"},
 }
