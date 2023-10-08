@@ -118,7 +118,12 @@ OAUTH2_PROVIDER = {
     "OAUTH2_VALIDATOR_CLASS": "users.oauth2.OAuth2Validator",
     "APPLICATION_ADMIN_CLASS": "users.oauth2.ApplicationAdmin",
     "OIDC_ENABLED": True,
-    "SCOPES": {"openid": "OpenID Connect scope"},
+    "OIDC_RSA_PRIVATE_KEY": env.str("OIDC_RSA_PRIVATE_KEY", multiline=True),
+    "SCOPES": {
+        "openid": "OpenID Connect scope",
+        "profile": "Allow to get profile data (e.g. role)",
+        "email": "Allow to get email address",
+    },
 }
 
 # Internationalization

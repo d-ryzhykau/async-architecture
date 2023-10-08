@@ -5,6 +5,11 @@ from .models import User
 
 
 class OAuth2Validator(oauth2_validators.OAuth2Validator):
+    oidc_claim_scope = {
+        **oauth2_validators.OAuth2Validator.oidc_claim_scope,
+        "role": "profile",
+    }
+
     def get_additional_claims(self, request):
         user: User = request.user
         return {
