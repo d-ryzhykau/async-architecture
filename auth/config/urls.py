@@ -20,6 +20,15 @@ from oauth2_provider import urls as oauth_urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("oauth/", include(oauth_urls.base_urlpatterns + oauth_urls.oidc_urlpatterns)),
+    path(
+        "oauth/",
+        include(
+            (
+                oauth_urls.base_urlpatterns + oauth_urls.oidc_urlpatterns,
+                "oauth2_provider",
+            ),
+            namespace="oauth2_provider",
+        ),
+    ),
     path("", include("users.urls")),
 ]
