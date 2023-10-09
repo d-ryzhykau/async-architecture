@@ -24,9 +24,12 @@
           <div class="navbar-end">
             <div class="navbar-item">
               {% if user.is_authenticated %}
-              <a href="{% url 'logout' %}" class="navbar-end">Logout</a>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <input type="submit" value="Logout" class="button is-danger is-light" />
+              </form>
               {% else %}
-              <a href="{% url 'login' %}" class="navbar-end">Login</a>
+              <a href="{% url 'login' %}" class="button is-primary is-light" >Login</a>
               {% endif %}
             </div>
           </div>
