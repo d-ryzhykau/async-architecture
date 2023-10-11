@@ -87,6 +87,9 @@ DATABASES = {
     "default": env.db("DATABASE_URL"),
 }
 
+KAFKA_ADDRESS = env("KAFKA_ADDRESS")
+
+
 AUTH_USER_MODEL = "users.User"
 
 # Password validation
@@ -151,9 +154,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SESSION_COOKIE_NAME = "auth-sessionid"
 CSRF_COOKIE_NAME = "auth-csrftoken"
-
-
-KAFKA_ADDRESS = env("KAFKA_ADDRESS")
 
 
 SILENCED_SYSTEM_CHECKS = [
