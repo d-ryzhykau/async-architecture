@@ -122,6 +122,8 @@ OAUTH2_PROVIDER = {
     "APPLICATION_ADMIN_CLASS": "users.oauth2.ApplicationAdmin",
     "OIDC_ENABLED": True,
     "OIDC_RSA_PRIVATE_KEY": env.str("OIDC_RSA_PRIVATE_KEY", multiline=True),
+    "OIDC_RP_INITIATED_LOGOUT_ENABLED": True,
+    "PKCE_REQUIRED": False,
     "SCOPES": {
         "openid": "OpenID Connect scope",
         "profile": "Allow to get profile data (e.g. role)",
