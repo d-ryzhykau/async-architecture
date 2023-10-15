@@ -20,5 +20,5 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("oidc/", include("mozilla_django_oidc.urls")),
-    path("", include("tasks.urls")),
+    path("", include("task_tracker.core.urls")),
 ]

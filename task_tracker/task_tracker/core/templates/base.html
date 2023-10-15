@@ -24,7 +24,7 @@
           <div class="navbar-end">
             <div class="navbar-item">
               {% if user.is_authenticated %}
-              <form method="post" action="{% url 'logout' %}">
+              <form method="post" action="{% url 'oidc_logout' %}">
                 {% csrf_token %}
                 <input type="submit" value="Logout" class="button is-danger is-light" />
               </form>

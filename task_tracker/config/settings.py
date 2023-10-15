@@ -37,8 +37,9 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # local
-    "tasks",
-    "users",
+    "task_tracker.core",
+    "task_tracker.tasks",
+    "task_tracker.users",
     # default
     "django.contrib.admin",
     "django.contrib.auth",
@@ -65,7 +66,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ["templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -90,7 +91,7 @@ DATABASES = {
 
 
 AUTHENTICATION_BACKENDS = [
-    "users.auth.OIDCAuthenticationBackend",
+    "config.oidc.OIDCAuthenticationBackend",
 ]
 
 AUTH_USER_MODEL = "users.User"
@@ -118,7 +119,7 @@ OIDC_RP_CLIENT_ID = env("OIDC_CLIENT_ID")
 OIDC_RP_CLIENT_SECRET = env("OIDC_CLIENT_SECRET")
 OIDC_RP_SCOPES = "openid email profile"
 OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_AUTHENTICATE_CLASS = "users.auth.OIDCAuthenticationRequestView"
+OIDC_AUTHENTICATE_CLASS = "config.oidc.OIDCAuthenticationRequestView"
 
 
 def get_oidc_metadata(discovery_url: str) -> dict:
@@ -156,7 +157,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
