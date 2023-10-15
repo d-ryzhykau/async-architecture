@@ -36,8 +36,9 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # local
-    "outbox.apps.OutboxConfig",
-    "users.apps.UsersConfig",
+    "auth.core",
+    "auth.outbox",
+    "auth.users",
     # default
     "django.contrib.admin",
     "django.contrib.auth",
@@ -118,8 +119,8 @@ LOGIN_REDIRECT_URL = "index"
 
 
 OAUTH2_PROVIDER = {
-    "OAUTH2_VALIDATOR_CLASS": "users.oauth2.OAuth2Validator",
-    "APPLICATION_ADMIN_CLASS": "users.oauth2.ApplicationAdmin",
+    "OAUTH2_VALIDATOR_CLASS": "config.oauth2.OAuth2Validator",
+    "APPLICATION_ADMIN_CLASS": "config.oauth2.ApplicationAdmin",
     "OIDC_ENABLED": True,
     "OIDC_RSA_PRIVATE_KEY": env.str("OIDC_RSA_PRIVATE_KEY", multiline=True),
     "OIDC_RP_INITIATED_LOGOUT_ENABLED": True,

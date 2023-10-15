@@ -3,7 +3,7 @@ from typing import Optional
 from django.db import transaction
 
 from .models import User
-from outbox.services import event_create
+from auth.outbox.services import event_create
 
 USERS_STREAM_TOPIC = "users-stream"
 

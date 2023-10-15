@@ -30,5 +30,5 @@ urlpatterns = [
             namespace="oauth2_provider",
         ),
     ),
-    path("", include("users.urls")),
+    path("", include("auth.core.urls")),
 ]
