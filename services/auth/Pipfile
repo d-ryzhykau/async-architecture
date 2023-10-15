@@ -7,13 +7,12 @@ name = "pypi"
 # web
 django = "~=4.2.5"
 django-environ = "~=0.11.2"
-mozilla-django-oidc = "~=3.0.0"
-requests = "~=2.31.0"
+django-oauth-toolkit = "~=2.3.0"
 # db
 psycopg = {version = "~=3.1.10", extras = ["binary"]}
 # kafka
 kafka-python = "~=2.0.2"
-event-schema-registry = {editable = true, path = "./../event_schema_registry/python"}
+event-schema-registry = {editable = true, path = "../../libs/event-schema-registry/python"}
 
 [dev-packages]
 black = "~=23.7.0"
