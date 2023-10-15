@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>To login, please, proceed to Auth service.</p>
+<form method="post" action="{% url 'oidc_authentication_init' %}">
+  {% csrf_token %}
+  <input type="submit" class="button is-primary is-light" value="Login via Auth service">
+</form>
+{% endblock%}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Task Tracker Service{% endblock %}</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}" />
+    <script src="{% static 'js/navbar-toggle.js' %}"></script>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="{% url 'index' %}">Uber Popug Inc: Auth</a>
+          <a id="navbarBurger" class="navbar-burger">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </a>
+        </div>
+        <div id="navbarMenu" class="navbar-menu">
+          <div class="navbar-end">
+            <div class="navbar-item">
+              {% if user.is_authenticated %}
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <input type="submit" value="Logout" class="button is-danger is-light" />
+              </form>
+              {% else %}
+              <a href="{% url 'oidc_authentication_init' %}" class="class="button is-primary is-light"">Login</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <div class="container content px-4">
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>

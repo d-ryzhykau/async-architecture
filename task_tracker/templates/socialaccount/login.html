@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>To login, please, proceed to Auth service.</p>
+<form method="post" action="{% url 'openid_connect_login' %}">
+  {% csrf_token %}
+  <input type="submit" value="Login via Auth service">
+</form>
+{% endblock%}

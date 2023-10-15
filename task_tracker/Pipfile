@@ -4,18 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-# settings
-pydantic-settings = "~=2.0.2"
-# db
-psycopg2 = "~=2.9.7"
-sqlalchemy = "~=2.0.19"
-alembic = "~=1.11.2"
 # web
-fastapi = "~=0.101.0"
-python-multipart = "~=0.0.6"
-uvicorn = {version = "~=0.23.2", extras = ["standard"]}
-pydantic = {version = "~=2.1.1", extras = ["email"]}
-python-jose = {version = "~=3.3.0", extras = ["cryptography"]}
+django = "~=4.2.5"
+django-environ = "~=0.11.2"
+mozilla-django-oidc = "~=3.0.0"
+requests = "~=2.31.0"
+# db
+psycopg = {version = "~=3.1.10", extras = ["binary"]}
+# kafka
 kafka-python = "~=2.0.2"
 event-schema-registry = {editable = true, path = "./../event_schema_registry/python"}
 
