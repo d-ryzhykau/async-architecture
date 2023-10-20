@@ -16,9 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("oidc/", include("mozilla_django_oidc.urls")),
-    path("", include("task_tracker.core.urls")),
+    path("", RedirectView.as_view(pattern_name="tasks:list"), name="index"),
+    path("tasks/", include("task_tracker.tasks.urls")),
 ]

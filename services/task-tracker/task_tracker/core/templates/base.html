@@ -21,6 +21,13 @@
           </a>
         </div>
         <div id="navbarMenu" class="navbar-menu">
+          <div class="navbar-start">
+            {% with url_namespace=request.resolver_match.namespace url_name=request.resolver_match.url_name %}
+            <a class="navbar-item{% if url_namespace == 'tasks' and url_name == 'list' %} is-active{% endif %}" href="{% url 'tasks:list' %}">Tasks</a>
+            <a class="navbar-item{% if url_namespace == 'tasks' and url_name == 'list-my' %} is-active{% endif %}" href="{% url 'tasks:list' %}?my">My Tasks</a>
+            <a class="navbar-item{% if url_namespace == 'tasks' and url_name == 'create' %} is-active{% endif %}" href="{% url 'tasks:create' %}">Create a New Task</a>
+            {% endwith %}
+          </div>
           <div class="navbar-end">
             <div class="navbar-item">
               {% if user.is_authenticated %}
