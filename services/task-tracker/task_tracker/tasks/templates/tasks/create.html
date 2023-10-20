@@ -1,0 +1,53 @@
+{% load widget_tweaks %}
+
+{% extends "base.html" %}
+
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+
+  {% for field in form.hidden_fields %}
+    {{ field }}
+  {% endfor %}
+
+  {% for error in form.non_field_errors %}
+  <p class="notification is-danger is-light">
+    {{ error }}
+  </p>
+  {% endfor %}
+
+  <div class="field">
+    {% with form.title as title %}
+    <label for="{{ title.id_for_label }}" class="label">
+      {{ title.label }}
+    </label>
+    <div class="control">
+      {{ title|add_class:"input" }}
+    </div>
+
+    {% for error in title.errors %}
+    <p class="help is-danger">{{ error }}</p>
+    {% endfor %}
+
+    {% endwith %}
+  </div>
+
+  <div class="field">
+    {% with form.description as description %}
+    <label for="{{ description.id_for_label }}" class="label">
+      {{ description.label }}
+    </label>
+    <div class="control">
+      {{ description|add_class:"input textarea" }}
+    </div>
+
+    {% for error in description.errors %}
+    <p class="help is-danger">{{ error }}</p>
+    {% endfor %}
+
+    {% endwith %}
+  </div>
+
+  <input type="submit" class="button is-primary" value="Save">
+</form>
+{% endblock  %}

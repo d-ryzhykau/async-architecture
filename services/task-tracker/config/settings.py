@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # 3rd party
     "mozilla_django_oidc",
+    "widget_tweaks",
 ]
 
 MIDDLEWARE = [
