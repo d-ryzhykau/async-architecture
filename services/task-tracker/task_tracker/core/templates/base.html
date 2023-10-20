@@ -11,9 +11,9 @@
   </head>
   <body>
     <header>
-      <nav class="navbar">
+      <nav class="navbar is-warning">
         <div class="navbar-brand">
-          <a class="navbar-item" href="{% url 'index' %}">Uber Popug Inc: Auth</a>
+          <a class="navbar-item" href="{% url 'index' %}">Uber Popug Inc: Task Tracker</a>
           <a id="navbarBurger" class="navbar-burger">
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
@@ -26,10 +26,10 @@
               {% if user.is_authenticated %}
               <form method="post" action="{% url 'oidc_logout' %}">
                 {% csrf_token %}
-                <input type="submit" value="Logout" class="button is-danger is-light" />
+                <input type="submit" value="Logout" class="button is-danger" />
               </form>
               {% else %}
-              <a href="{% url 'oidc_authentication_init' %}" class="class="button is-primary is-light"">Login</a>
+              <a href="{% url 'oidc_authentication_init' %}" class="button is-primary">Login</a>
               {% endif %}
             </div>
           </div>
