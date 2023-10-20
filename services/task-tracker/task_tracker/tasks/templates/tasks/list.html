@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="columns is-mobile is-centered">
+  <div class="column is-two-thirds-desktop is-full-mobile">
+    {% if not object_list %}
+    <p class="notification">
+      No tasks found at the moment. Try again later.
+    </p>
+    {% endif %}
+
+    {% for task in object_list %}
+    <div class="card my-4">
+      <header class="card-header">
+        <p class="card-header-title">{{ task.title }}</p>
+      </header>
+      <div class="card-content">
+        <div class="columns">
+          <div class="column is-two-thirds">
+            <p class="content">
+              {{ task.description }}
+            </p>
+          </div>
+          <div class="column is-one-third has-background-light">
+            <p>
+              Status:
+              {% if task.status == 'assigned' %}
+              <span class="tag is-info">Assigned</span>
+              {% else %}
+              <span class="tag is-success">Completed</span>
+              {% endif %}
+            </p>
+            <p style="overflow: hidden; text-overflow: ellipsis">Assignee: {{ task.assignee }}</p>
+            {% if task.jira_id %}
+            <p>JIRA ID: <span class="tag is-dark">{{ task.jira_id }}</span></p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <footer class="card-footer">
+        <a class="card-footer-item">Details</a>
+      </footer>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock%}
