@@ -35,6 +35,8 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser):
     USERNAME_FIELD = "email"
 
+    objects = UserManager()
+
     public_id = models.UUIDField(unique=True)
 
     email = models.EmailField(_("email address"))
