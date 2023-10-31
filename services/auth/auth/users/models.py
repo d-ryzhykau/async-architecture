@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 class UserManager(BaseUserManager):
     @classmethod
-    def normalize_email(self, email: str) -> str:
+    def normalize_email(cls, email: str) -> str:
         return super().normalize_email(email).lower()
 
     # used by django.contrib.auth.backends.ModelBackend
