@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 
 from django.conf import settings
@@ -7,6 +8,8 @@ from django.db import transaction
 from kafka import KafkaProducer
 
 from auth.outbox.models import Event
+
+logger = logging.getLogger(__name__)
 
 
 def key_serializer(key: str) -> bytes:
@@ -61,5 +64,11 @@ class Command(BaseCommand):
                 kafka_producer.flush()
                 # save events
                 Event.objects.bulk_update(events, ["sent_at"])
+
+                if logger.isEnabledFor(logging.INFO):
+                    logger.info(
+                        "Sent events batch. events=%s",
+                        [event.pk for event in events],
+                    )
 
             time.sleep(pause_for)
