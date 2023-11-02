@@ -1,35 +1,86 @@
-import uuid
+from typing import Tuple
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.hashers import make_password
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
     @classmethod
-    def normalize_email(self, email: str) -> str:
+    def normalize_email(cls, email: str) -> str:
         return super().normalize_email(email).lower()
 
-    def create_user(
+    def create_superuser(self, *args, **kwargs):
+        raise NotImplementedError("You cannot create superusers in this service.")
+
+    @classmethod
+    def make_unusable_password(cls) -> str:
+        return make_password(None)
+
+    def get_or_create_user(
         self,
+        public_id: str,
         email: str,
         role: str,
-    ) -> "User":
+    ) -> Tuple["User", bool]:
+        """Finds existing user by `public_id` or creates a new one with given attributes.
+
+        Returns: 2-tuple (user, created)
+            user: found or created User object
+            created: boolean specifying whether a new user was created.
+        """
+        if not public_id:
+            raise ValueError("public_id cannot be empty")
         if not email:
             raise ValueError("email cannot be empty")
         if not role:
             raise ValueError("role cannot be empty")
 
-        user = self.model(email=self.normalize_email(email), role=role)
-        user.set_unusable_password()
-        user.full_clean()
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, *_, **__):
-        raise NotImplementedError(
-            "You cannot create superusers in this service."
+        return self.get_or_create(
+            public_id=public_id,
+            defaults={
+                "email": self.normalize_email(email),
+                "role": role,
+                "password": self.make_unusable_password(),
+            },
         )
+
+    def update_or_create_user(
+        self,
+        public_id: str,
+        email: str,
+        role: str,
+    ) -> Tuple["User", bool]:
+        """Updates existing User with `public_id` or creates a new one with given attributes.
+
+        Returns: 2-tuple (user, created)
+            user: found or created User object
+            created: boolean specifying whether a new user was created.
+        """
+        if not public_id:
+            raise ValueError("public_id cannot be empty")
+        if not email:
+            raise ValueError("email cannot be empty")
+        if not role:
+            raise ValueError("role cannot be empty")
+
+        return self.update_or_create(
+            public_id=public_id,
+            defaults={
+                "email": self.normalize_email(email),
+                "role": role,
+                "password": self.make_unusable_password(),
+            },
+        )
+
+    def delete_user(self, public_id: str) -> int:
+        """Deletes a User with given `public_id`.
+
+        Returns:
+            number of deleted User records.
+        """
+        return self.filter(public_id=public_id, is_deleted=False).update(is_deleted=True)
 
 
 class User(AbstractBaseUser):

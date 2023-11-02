@@ -90,6 +90,10 @@ DATABASES = {
     "default": env.db("DATABASE_URL"),
 }
 
+KAFKA_ADDRESS = env("KAFKA_ADDRESS")
+KAFKA_USERS_STREAM_TOPIC = env("KAFKA_USERS_STREAM_TOPIC", default="users-stream")
+KAFKA_CONSUMER_GROUP_ID = env("KAFKA_CONSUMER_GROUP_ID", default="task-tracker")
+
 
 AUTHENTICATION_BACKENDS = [
     "config.oidc.OIDCAuthenticationBackend",
@@ -167,6 +171,38 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SESSION_COOKIE_NAME = "task_tracker-sessionid"
 CSRF_COOKIE_NAME = "task_tracker-csrftoken"
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "users_stream_consumer": {
+            "format": (
+                "%(asctime)s %(levelname)s:%(name)s:%(message)s :: "
+                "message.topic=%(message_topic)s "
+                "message.partition=%(message_partition)s "
+                "message.offset=%(message_offset)s "
+                "message.key=%(message_key)s "
+                "message.value=%(message_value)s "
+                "event_name=%(event_name)s "
+                "event_version=%(event_version)s "
+            ),
+        },
+    },
+    "handlers": {
+        "users_stream_consumer": {
+            "level": "DEBUG" if DEBUG else "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "users_stream_consumer",
+        },
+    },
+    "loggers": {
+        "users_stream_consumer": {
+            "handlers": ["users_stream_consumer"],
+        }
+    }
+}
 
 
 SILENCED_SYSTEM_CHECKS = [
