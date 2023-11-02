@@ -26,7 +26,7 @@ class Event(models.Model):
 
     def mark_sent(self):
         """Sets `self.sent_at` to current time."""
-        if self.sent_at is not None:
+        if self.sent_at is None:
             self.sent_at = timezone.now()
 
     @property
