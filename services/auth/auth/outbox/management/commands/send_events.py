@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from kafka import KafkaProducer
 
-from outbox.models import Event
+from auth.outbox.models import Event
 
 
 def key_serializer(key: str) -> bytes:

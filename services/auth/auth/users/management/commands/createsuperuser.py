@@ -4,8 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
 
-from users.models import User
-from users.services import user_create
+from auth.users.models import User
+from auth.users.services import user_create
 
 PASSWORD_FIELD = "password"
 
