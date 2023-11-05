@@ -89,7 +89,7 @@ DATABASES = {
 }
 
 KAFKA_ADDRESS = env("KAFKA_ADDRESS")
-
+KAFKA_USERS_STREAM_TOPIC = env("KAFKA_USERS_STREAM_TOPIC", default="users-stream")
 
 AUTH_USER_MODEL = "users.User"
 
