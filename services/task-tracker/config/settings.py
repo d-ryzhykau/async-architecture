@@ -38,6 +38,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     # local
     "task_tracker.core",
+    "task_tracker.outbox",
     "task_tracker.tasks",
     "task_tracker.users",
     # default
