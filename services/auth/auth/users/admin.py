@@ -126,16 +126,21 @@ class UserAdmin(BaseUserAdmin):
 
         if change and form.has_changed():
             form: UserChangeForm
-            changed_data = [form.cleaned_data[field] for field in form.changed_data]
-            return user_update(user=form.instance, **changed_data)
+            # mad people who developed Django thought it was a great idea
+            # to update model instance during validation
+            # (https://code.djangoproject.com/ticket/14885)
+            # so form.instance contains a modified instance
+            changed_data = {field: form.cleaned_data[field] for field in form.changed_data}
+            form.instance = user_update(User.objects.get(pk=form.instance.pk), **changed_data)
         else:
             form: UserCreationForm
-            return user_create(
+            form.instance = user_create(
                 email=form.cleaned_data["email"],
                 role=form.cleaned_data["role"],
                 password=form.cleaned_data["password2"],
                 is_superuser=form.cleaned_data["is_superuser"],
             )
+        return form.instance
 
     def save_model(self, *args, **kwargs):
         # as model is saved in self.save_form this step can be skipped
