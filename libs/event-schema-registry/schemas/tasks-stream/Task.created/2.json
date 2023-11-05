@@ -10,6 +10,9 @@
         "title": {
           "type": "string"
         },
+        "jira_id": {
+          "type": ["string", "null"]
+        },
         "description": {
           "type": "string"
         },
@@ -23,6 +26,7 @@
       "required": [
         "public_id",
         "title",
+        "jira_id",
         "description",
         "assignment_price",
         "completion_price"

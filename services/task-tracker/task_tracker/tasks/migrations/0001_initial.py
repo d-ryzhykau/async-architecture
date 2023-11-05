@@ -27,7 +27,6 @@ class Migration(migrations.Migration):
                 ),
                 ("public_id", models.UUIDField(unique=True)),
                 ("title", models.CharField(max_length=128)),
-                ("jira_id", models.CharField(blank=True, max_length=24)),
                 ("description", models.TextField(blank=True)),
                 (
                     "status",
