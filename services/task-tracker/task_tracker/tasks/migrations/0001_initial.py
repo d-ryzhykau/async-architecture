@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
+import task_tracker.tasks.models
+
 
 class Migration(migrations.Migration):
     initial = True
@@ -34,6 +36,22 @@ class Migration(migrations.Migration):
                         choices=[("assigned", "Assigned"), ("completed", "Completed")],
                         default="assigned",
                         max_length=16,
+                    ),
+                ),
+                (
+                    "assignment_price",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=task_tracker.tasks.models.get_assignment_price,
+                        max_digits=4,
+                    ),
+                ),
+                (
+                    "completion_price",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=task_tracker.tasks.models.get_completion_price,
+                        max_digits=4,
                     ),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),

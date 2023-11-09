@@ -1,4 +1,6 @@
-from django.apps import apps
+import random
+from decimal import Decimal
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -39,6 +41,24 @@ class TaskManager(models.Manager):
         )
 
 
+def _randrange_decimal(start, stop, decimal_places=2) -> Decimal:
+    decimal_places_multiplier = 10 ** decimal_places
+    return Decimal(
+        random.randrange(
+            start * decimal_places_multiplier,
+            stop * decimal_places_multiplier,
+        )
+    ) / decimal_places_multiplier
+
+
+def get_assignment_price():
+    return _randrange_decimal(10, 20)
+
+
+def get_completion_price():
+    return _randrange_decimal(20, 40)
+
+
 class Task(models.Model):
     objects = TaskManager()
 
@@ -60,6 +80,17 @@ class Task(models.Model):
         "users.User",
         related_name="tasks",
         on_delete=models.RESTRICT,
+    )
+
+    assignment_price = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=get_assignment_price,
+    )
+    completion_price = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=get_completion_price,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
