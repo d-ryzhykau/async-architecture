@@ -10,10 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from functools import partial
 from pathlib import Path
 
 import environ
 import requests
+from django.utils.functional import SimpleLazyObject
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -135,16 +137,18 @@ def get_oidc_metadata(discovery_url: str) -> dict:
     return response.json()
 
 
-oidc_metadata = get_oidc_metadata(env("OIDC_DISCOVERY_URL"))
-OIDC_OP_AUTHORIZATION_ENDPOINT = oidc_metadata["authorization_endpoint"]
-OIDC_OP_TOKEN_ENDPOINT = oidc_metadata["token_endpoint"]
-OIDC_OP_USER_ENDPOINT = oidc_metadata["userinfo_endpoint"]
-OIDC_OP_JWKS_ENDPOINT = oidc_metadata["jwks_uri"]
+oidc_metadata = SimpleLazyObject(partial(get_oidc_metadata, env("OIDC_DISCOVERY_URL")))
+OIDC_OP_AUTHORIZATION_ENDPOINT = SimpleLazyObject(
+    lambda: oidc_metadata["authorization_endpoint"]
+)
+OIDC_OP_TOKEN_ENDPOINT = SimpleLazyObject(lambda: oidc_metadata["token_endpoint"])
+OIDC_OP_USER_ENDPOINT = SimpleLazyObject(lambda: oidc_metadata["userinfo_endpoint"])
+OIDC_OP_JWKS_ENDPOINT = SimpleLazyObject(lambda: oidc_metadata["jwks_uri"])
 
 
 LOGIN_URL = "oidc_authentication_init"
 LOGIN_REDIRECT_URL = "index"
-LOGOUT_REDIRECT_URL = oidc_metadata["end_session_endpoint"]
+LOGOUT_REDIRECT_URL = SimpleLazyObject(lambda: oidc_metadata["end_session_endpoint"])
 
 
 # Internationalization
