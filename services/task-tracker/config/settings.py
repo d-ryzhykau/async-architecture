@@ -93,9 +93,16 @@ DATABASES = {
     "default": env.db("DATABASE_URL"),
 }
 
+
 KAFKA_ADDRESS = env("KAFKA_ADDRESS")
-KAFKA_USERS_STREAM_TOPIC = env("KAFKA_USERS_STREAM_TOPIC", default="users-stream")
 KAFKA_CONSUMER_GROUP_ID = env("KAFKA_CONSUMER_GROUP_ID", default="task-tracker")
+
+KAFKA_USERS_STREAM_TOPIC = env("KAFKA_USERS_STREAM_TOPIC", default="users-stream")
+KAFKA_TASKS_STREAM_TOPIC = env("KAFKA_TASKS_STREAM_TOPIC", default="tasks-stream")
+# TODO: replace LIFECYCLE with a better word
+KAFKA_TASKS_LIFECYCLE_TOPIC = env(
+    "KAFKA_TASKS_LIFECYCLE_TOPIC", default="tasks-lifecycle"
+)
 
 
 AUTHENTICATION_BACKENDS = [
@@ -206,7 +213,7 @@ LOGGING = {
         "users_stream_consumer": {
             "handlers": ["users_stream_consumer"],
         }
-    }
+    },
 }
 
 
